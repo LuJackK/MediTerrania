@@ -184,11 +184,11 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 33abfc93c2b8c4e7585ffd04add6e81e, type: 2}
   species:
   - speciesName: A
-    prefab: {fileID: 7575847272393211300, guid: d8cab7cb2a9f045b3860924359f1c21b, type: 3}
+    prefab: {fileID: 3315227629224718504, guid: 02d5da11b6d3341a4a44dd2b42764fd1, type: 3}
     maxBoids: 30
     activeBoids: []
   - speciesName: B
-    prefab: {fileID: 4821458731871861094, guid: 85aa031d38a924111942abc7fc93b37e, type: 3}
+    prefab: {fileID: 2016569662250565342, guid: 89d2b898355e7435bb98c8c952dcc1b0, type: 3}
     maxBoids: 30
     activeBoids: []
   - speciesName: C
