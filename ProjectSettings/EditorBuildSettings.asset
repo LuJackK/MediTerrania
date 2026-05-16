@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Test1.unity
     guid: 96d4e0dc6027f9645a7281e34d24f7a0
   - enabled: 1
+    path: Assets/Scenes/HabitatSuitabilityTest.unity
+    guid: 060395dafece4873aa991153b0989a8c
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:

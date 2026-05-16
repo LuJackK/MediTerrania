@@ -21,7 +21,7 @@ MonoBehaviour:
     m_Value: 0.9
   intensity:
     m_OverrideState: 1
-    m_Value: 0.22
+    m_Value: 0.3
   scatter:
     m_OverrideState: 1
     m_Value: 0.7
@@ -32,8 +32,8 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: {r: 0.48, g: 0.88, b: 1, a: 1}
   highQualityFiltering:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1
   filter:
     m_OverrideState: 0
     m_Value: 0
@@ -65,10 +65,10 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: -0.2
+    m_Value: 0.05
   contrast:
     m_OverrideState: 1
-    m_Value: 18
+    m_Value: 14
   colorFilter:
     m_OverrideState: 1
     m_Value: {r: 0.205, g: 0.72, b: 0.96, a: 1}
@@ -77,7 +77,7 @@ MonoBehaviour:
     m_Value: 0
   saturation:
     m_OverrideState: 1
-    m_Value: -24
+    m_Value: -12
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,10 +125,10 @@ MonoBehaviour:
     m_Value: 0
   density:
     m_OverrideState: 1
-    m_Value: 0.22
+    m_Value: 0.16
   attenuationDistance:
     m_OverrideState: 1
-    m_Value: 55
+    m_Value: 75
   enableAPVContribution:
     m_OverrideState: 0
     m_Value: 0
@@ -143,7 +143,7 @@ MonoBehaviour:
     m_Value: 0.68
   scattering:
     m_OverrideState: 1
-    m_Value: 0.5
+    m_Value: 0.56
   tint:
     m_OverrideState: 1
     m_Value: {r: 0.22, g: 0.78, b: 0.95, a: 1}
@@ -152,10 +152,10 @@ MonoBehaviour:
     m_Value: 1
   maxSteps:
     m_OverrideState: 1
-    m_Value: 96
+    m_Value: 128
   blurIterations:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 2
   enabled:
     m_OverrideState: 1
     m_Value: 1
@@ -183,10 +183,10 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   intensity:
     m_OverrideState: 1
-    m_Value: 0.28
+    m_Value: 0.16
   smoothness:
     m_OverrideState: 1
-    m_Value: 0.52
+    m_Value: 0.6
   rounded:
     m_OverrideState: 0
     m_Value: 0

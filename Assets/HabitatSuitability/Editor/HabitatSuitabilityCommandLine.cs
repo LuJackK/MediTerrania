@@ -64,11 +64,8 @@ public static class HabitatSuitabilityCommandLine
 
     private static void LogResult(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics, List<string> outputLines)
     {
-        SuitabilityResult result = HabitatSuitabilityScorer.ComputeSuitability(species, reefMetrics);
-        WriteLine(
-            $"{result.scientificName} ({result.commonName}): {result.finalScore:0.00}, {result.suitabilityClass} " +
-            $"| environment {result.environmentScore:0.00}, microhabitat {result.microhabitatScore:0.00}, critical {result.criticalMultiplier:0.00}",
-            outputLines);
+        float score = HabitatSuitabilityScorer.ComputeSuitabilityScore(species, reefMetrics);
+        WriteLine($"{species.scientificName} ({species.commonName}): {score:0.000}", outputLines);
     }
 
     private static string GetArgumentValue(string argumentName, string fallback)

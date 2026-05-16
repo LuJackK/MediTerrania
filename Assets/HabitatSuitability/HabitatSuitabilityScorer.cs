@@ -3,6 +3,11 @@ using UnityEngine;
 
 public static class HabitatSuitabilityScorer
 {
+    public static float ComputeSuitabilityScore(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)
+    {
+        return Mathf.Clamp01(ComputeSuitability(species, reefMetrics).finalScore);
+    }
+
     public static SuitabilityResult ComputeSuitability(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)
     {
         if (species == null)

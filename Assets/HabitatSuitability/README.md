@@ -18,6 +18,8 @@ To add a species, add another object to the JSON `species` list. To add a featur
 
 ## Quick Test
 
+Open the `HabitatSuitabilityTest` scene and press Play to use the runtime tester panel. Pick a fish with the arrow buttons, adjust the habitat sliders, or use the Good/Poor/Reset presets. The large output is the selected fish species' single normalized suitability score from `0..1`.
+
 Add `HabitatSuitabilityTestCase` to an empty GameObject and press Play. It takes a fish input by `speciesId` plus raw/normalized terrain inputs from the Inspector, then logs suitability scores. Leave `speciesId` empty to score every configured fish against the same terrain.
 
 You can also run a console test through Unity batchmode:

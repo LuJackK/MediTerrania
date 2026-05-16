@@ -1,4 +1,4 @@
 --- Habitat suitability command-line test: Good shallow rocky reef ---
-Parablennius rouxi (Longstriped blenny): 0.81, High suitability | environment 0.98, microhabitat 0.85, critical 0.88
+Parablennius rouxi (Longstriped blenny): 0.812
 --- Habitat suitability command-line test: Poor deep sandy clogged reef ---
-Parablennius rouxi (Longstriped blenny): 0.00, Poor suitability | environment 0.22, microhabitat 0.07, critical 0.00
+Parablennius rouxi (Longstriped blenny): 0.000

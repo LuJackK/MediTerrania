@@ -20,10 +20,10 @@ RenderSettings:
   m_FogDensity: 0.0125
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.07058824, g: 0.24705882, b: 0.3764706, a: 1}
-  m_AmbientEquatorColor: {r: 0.03529412, g: 0.17254902, b: 0.25882354, a: 1}
-  m_AmbientGroundColor: {r: 0.011764706, g: 0.07058824, b: 0.105882354, a: 1}
-  m_AmbientIntensity: 0.95
+  m_AmbientSkyColor: {r: 0.047058824, g: 0.1882353, b: 0.29803923, a: 1}
+  m_AmbientEquatorColor: {r: 0.023529412, g: 0.13333334, b: 0.2, a: 1}
+  m_AmbientGroundColor: {r: 0.007843138, g: 0.047058824, b: 0.07058824, a: 1}
+  m_AmbientIntensity: 0.75
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
@@ -1161,7 +1161,7 @@ Light:
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 0.557, g: 0.895, b: 1, a: 1}
-  m_Intensity: 0.78
+  m_Intensity: 0.58
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1170,9 +1170,9 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.62
-    m_Bias: 0.035
-    m_NormalBias: 0.24
+    m_Strength: 0.7
+    m_Bias: 0.05
+    m_NormalBias: 0.4
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -3075,7 +3075,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 313feeaf3b228844c9cb4f6e424f0564, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3892,7 +3892,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 313feeaf3b228844c9cb4f6e424f0564, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
