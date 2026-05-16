@@ -1,0 +1,123 @@
+{
+  "species": [
+    {
+      "speciesId": "parablennius_rouxi",
+      "scientificName": "Parablennius rouxi",
+      "commonName": "Longstriped blenny",
+      "localName": "Črnoboka babica",
+      "environmentWeight": 0.55,
+      "microhabitatWeight": 0.45,
+      "trainedEnvironmentCoefficients": [
+        { "feature": "depthSuitability", "weight": 0.304 },
+        { "feature": "temperatureSuitability", "weight": 0.204 },
+        { "feature": "salinitySuitability", "weight": 0.121 },
+        { "feature": "chlorophyllSuitability", "weight": 0.026 },
+        { "feature": "slopeSuitability", "weight": 0.011 },
+        { "feature": "terrainComplexity", "weight": 0.015 },
+        { "feature": "coastProximity", "weight": 0.308 },
+        { "feature": "rockySubstrate", "weight": 0.08 }
+      ],
+      "researchedMicrohabitatCoefficients": [
+        { "feature": "smallHoleDensity", "weight": 0.35 },
+        { "feature": "cleanCavities", "weight": 0.25 },
+        { "feature": "shadowAvailability", "weight": 0.2 },
+        { "feature": "surfaceRoughness", "weight": 0.2 }
+      ],
+      "criticalFactors": [
+        "depthSuitability",
+        "rockySubstrate",
+        "cleanCavities"
+      ]
+    },
+    {
+      "speciesId": "parablennius_incognitus",
+      "scientificName": "Parablennius incognitus",
+      "commonName": "Mystery blenny",
+      "localName": "Babica jelenka",
+      "environmentWeight": 0.55,
+      "microhabitatWeight": 0.45,
+      "trainedEnvironmentCoefficients": [
+        { "feature": "depthSuitability", "weight": 0.323 },
+        { "feature": "temperatureSuitability", "weight": 0.151 },
+        { "feature": "salinitySuitability", "weight": 0.111 },
+        { "feature": "chlorophyllSuitability", "weight": 0.041 },
+        { "feature": "slopeSuitability", "weight": 0.009 },
+        { "feature": "terrainComplexity", "weight": -0.004 },
+        { "feature": "coastProximity", "weight": 0.358 },
+        { "feature": "rockySubstrate", "weight": 0.08 }
+      ],
+      "researchedMicrohabitatCoefficients": [
+        { "feature": "smallHoleDensity", "weight": 0.28 },
+        { "feature": "mediumHoleDensity", "weight": 0.2 },
+        { "feature": "mixedLightShadow", "weight": 0.18 },
+        { "feature": "cleanCavities", "weight": 0.22 },
+        { "feature": "surfaceRoughness", "weight": 0.12 }
+      ],
+      "criticalFactors": [
+        "depthSuitability",
+        "rockySubstrate",
+        "cleanCavities"
+      ]
+    },
+    {
+      "speciesId": "chromis_chromis",
+      "scientificName": "Chromis chromis",
+      "commonName": "Damselfish",
+      "localName": "Črnik",
+      "environmentWeight": 0.6,
+      "microhabitatWeight": 0.4,
+      "trainedEnvironmentCoefficients": [
+        { "feature": "depthSuitability", "weight": 0.337 },
+        { "feature": "temperatureSuitability", "weight": 0.118 },
+        { "feature": "salinitySuitability", "weight": 0.042 },
+        { "feature": "chlorophyllSuitability", "weight": 0.006 },
+        { "feature": "slopeSuitability", "weight": 0.021 },
+        { "feature": "terrainComplexity", "weight": 0.068 },
+        { "feature": "coastProximity", "weight": 0.361 },
+        { "feature": "reefAssociation", "weight": 0.1 }
+      ],
+      "researchedMicrohabitatCoefficients": [
+        { "feature": "openSwimVolume", "weight": 0.32 },
+        { "feature": "verticalRelief", "weight": 0.2 },
+        { "feature": "reefEdgeComplexity", "weight": 0.18 },
+        { "feature": "shelterAvailability", "weight": 0.16 },
+        { "feature": "mixedLightShadow", "weight": 0.14 }
+      ],
+      "criticalFactors": [
+        "depthSuitability",
+        "reefAssociation",
+        "substrateSuitability"
+      ]
+    },
+    {
+      "speciesId": "diplodus_vulgaris",
+      "scientificName": "Diplodus vulgaris",
+      "commonName": "Common two-banded seabream",
+      "localName": "Fratrc",
+      "environmentWeight": 0.6,
+      "microhabitatWeight": 0.4,
+      "trainedEnvironmentCoefficients": [
+        { "feature": "depthSuitability", "weight": 0.34 },
+        { "feature": "temperatureSuitability", "weight": 0.11 },
+        { "feature": "salinitySuitability", "weight": 0.026 },
+        { "feature": "chlorophyllSuitability", "weight": 0.002 },
+        { "feature": "slopeSuitability", "weight": 0.031 },
+        { "feature": "terrainComplexity", "weight": 0.064 },
+        { "feature": "coastProximity", "weight": 0.402 },
+        { "feature": "rockySubstrate", "weight": 0.08 }
+      ],
+      "researchedMicrohabitatCoefficients": [
+        { "feature": "openSwimVolume", "weight": 0.24 },
+        { "feature": "reefEdgeComplexity", "weight": 0.22 },
+        { "feature": "mediumHoleDensity", "weight": 0.16 },
+        { "feature": "shelterAvailability", "weight": 0.18 },
+        { "feature": "verticalRelief", "weight": 0.2 }
+      ],
+      "criticalFactors": [
+        "depthSuitability",
+        "substrateSuitability",
+        "shelterAvailability"
+      ]
+    }
+  ]
+}
