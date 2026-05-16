@@ -19,13 +19,13 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     public Camera controlledCamera;
     public Image darknessOverlay;
     public float surfaceHiddenDepthMeters = 15f;
-    public float cameraDropAtHiddenSurface = 7f;
-    public float sceneDropAtMaxDepth = 6.5f;
+    public float cameraDropAtHiddenSurface = 2f;
+    public float surfaceRiseAtMaxDepth = 18f;
     public Color shallowDarknessColor = new(0f, 0.05f, 0.09f, 0.03f);
     public Color deepDarknessColor = new(0f, 0.025f, 0.07f, 0.34f);
 
     private RectTransform anchorRect;
-    private readonly List<DepthShiftTarget> depthShiftTargets = new();
+    private readonly List<DepthShiftTarget> surfaceShiftTargets = new();
     private float topY;
     private float bottomY;
     private float lockedAnchorX;
@@ -51,7 +51,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         maxDepthMeters = Mathf.Max(minDepthMeters, maxDepthMeters);
         surfaceHiddenDepthMeters = Mathf.Clamp(surfaceHiddenDepthMeters, minDepthMeters, maxDepthMeters);
         cameraDropAtHiddenSurface = Mathf.Max(0f, cameraDropAtHiddenSurface);
-        sceneDropAtMaxDepth = Mathf.Max(0f, sceneDropAtMaxDepth);
+        surfaceRiseAtMaxDepth = Mathf.Max(0f, surfaceRiseAtMaxDepth);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -201,7 +201,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
             darknessOverlay.color = Color.Lerp(shallowDarknessColor, deepDarknessColor, normalizedDepth);
         }
 
-        ApplySceneDepthShift(normalizedDepth);
+        ApplySurfaceDepthShift(normalizedDepth);
 
         controlledCamera ??= Camera.main;
         if (controlledCamera == null)
@@ -214,17 +214,17 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         controlledCamera.transform.position = shallowCameraPosition + Vector3.down * (cameraDropAtHiddenSurface * cameraDepthT);
     }
 
-    private void ApplySceneDepthShift(float normalizedDepth)
+    private void ApplySurfaceDepthShift(float normalizedDepth)
     {
-        CacheDepthShiftTargets();
-        Vector3 shift = Vector3.down * (sceneDropAtMaxDepth * normalizedDepth);
+        CacheSurfaceShiftTargets();
+        Vector3 shift = Vector3.up * (surfaceRiseAtMaxDepth * normalizedDepth);
 
-        for (int i = depthShiftTargets.Count - 1; i >= 0; i--)
+        for (int i = surfaceShiftTargets.Count - 1; i >= 0; i--)
         {
-            DepthShiftTarget target = depthShiftTargets[i];
+            DepthShiftTarget target = surfaceShiftTargets[i];
             if (target.Transform == null)
             {
-                depthShiftTargets.RemoveAt(i);
+                surfaceShiftTargets.RemoveAt(i);
                 continue;
             }
 
@@ -232,26 +232,26 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         }
     }
 
-    private void CacheDepthShiftTargets()
+    private void CacheSurfaceShiftTargets()
     {
         Transform[] transforms = FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         for (int i = 0; i < transforms.Length; i++)
         {
             Transform target = transforms[i];
-            if (target == null || target.parent != null || !IsDepthShiftTarget(target.name) || HasDepthShiftTarget(target))
+            if (target == null || target.parent != null || !IsSurfaceShiftTarget(target.name) || HasSurfaceShiftTarget(target))
             {
                 continue;
             }
 
-            depthShiftTargets.Add(new DepthShiftTarget(target, target.position));
+            surfaceShiftTargets.Add(new DepthShiftTarget(target, target.position));
         }
     }
 
-    private bool HasDepthShiftTarget(Transform transform)
+    private bool HasSurfaceShiftTarget(Transform transform)
     {
-        for (int i = 0; i < depthShiftTargets.Count; i++)
+        for (int i = 0; i < surfaceShiftTargets.Count; i++)
         {
-            if (depthShiftTargets[i].Transform == transform)
+            if (surfaceShiftTargets[i].Transform == transform)
             {
                 return true;
             }
@@ -260,11 +260,10 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         return false;
     }
 
-    private static bool IsDepthShiftTarget(string objectName)
+    private static bool IsSurfaceShiftTarget(string objectName)
     {
-        return objectName == "SeaFloor"
-            || objectName == "Caustics"
-            || objectName.StartsWith("habitat", System.StringComparison.OrdinalIgnoreCase);
+        return objectName == "SeaCeeling"
+            || objectName == "SeaCeiling";
     }
 
     private readonly struct DepthShiftTarget

@@ -268,20 +268,21 @@ public sealed class HabitatRopeController : MonoBehaviour
 
     private void AddHabitatPrefab(GameObject habitat)
     {
-        if (habitat == null)
+        if (habitat == null || !IsHabitatName(habitat.name) || habitat.GetComponent<HabitatRopeController>() != null)
         {
             return;
         }
 
-        string displayName = habitat.name;
+        string habitatKey = GetHabitatKey(habitat.name);
         for (int i = 0; i < habitats.Count; i++)
         {
-            if (habitats[i].DisplayName == displayName)
+            if (GetHabitatKey(habitats[i].Source.name) == habitatKey)
             {
                 return;
             }
         }
 
+        string displayName = $"Habitat {habitats.Count + 1}";
         habitats.Add(new HabitatEntry(displayName, habitat));
     }
 
@@ -307,7 +308,23 @@ public sealed class HabitatRopeController : MonoBehaviour
 
     private static bool IsHabitatName(string objectName)
     {
-        return objectName.StartsWith("habitat", System.StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(objectName))
+        {
+            return false;
+        }
+
+        string key = GetHabitatKey(objectName);
+        return key == "habitat1" || key == "habitat2" || key == "habitat3";
+    }
+
+    private static string GetHabitatKey(string objectName)
+    {
+        return objectName
+            .Replace(" ", string.Empty)
+            .Replace("_", string.Empty)
+            .Replace("-", string.Empty)
+            .Replace("(Clone)", string.Empty)
+            .ToLowerInvariant();
     }
 
     private static void CollectRopes(Transform root, List<GameObject> ropes)
@@ -417,42 +434,34 @@ public sealed class HabitatRopeController : MonoBehaviour
         }
 
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
-        float panelHeight = 112f + habitats.Count * 42f;
-        runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
-            MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
-            "Habitat Controls",
-            new Vector2(300f, panelHeight));
-
-        Image panelImage = runtimePanel.GetComponent<Image>();
-        if (panelImage != null)
-        {
-            panelImage.color = Color.clear;
-            panelImage.raycastTarget = false;
-        }
-
-        Outline panelOutline = runtimePanel.GetComponent<Outline>();
-        if (panelOutline != null)
-        {
-            panelOutline.enabled = false;
-        }
+        int visibleHabitatCount = Mathf.Min(3, habitats.Count);
+        float panelHeight = visibleHabitatCount * 38f + 44f;
+        GameObject panelObject = new("Habitat Controls", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
+        panelObject.transform.SetParent(MediTerraniaRuntimeUi.EnsureLeftColumn(canvas), false);
+        runtimePanel = panelObject.GetComponent<RectTransform>();
+        MediTerraniaRuntimeUi.AddLayoutElement(panelObject, panelHeight, preferredWidth: 300f);
 
         VerticalLayoutGroup layout = runtimePanel.GetComponent<VerticalLayoutGroup>();
         if (layout != null)
         {
             layout.spacing = 6f;
-            layout.padding = new RectOffset(14, 14, 14, 14);
+            layout.padding = new RectOffset(0, 0, 0, 0);
+            layout.childAlignment = TextAnchor.UpperLeft;
+            layout.childControlWidth = true;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
         }
 
-        MediTerraniaRuntimeUi.CreateTitle(runtimePanel, "Habitat");
         habitatButtons.Clear();
 
-        for (int i = 0; i < habitats.Count; i++)
+        for (int i = 0; i < visibleHabitatCount; i++)
         {
             int habitatIndex = i;
             Button habitatButton = MediTerraniaRuntimeUi.CreateButton(
                 runtimePanel,
                 $"Habitat {habitatIndex + 1}",
-                habitats[i].DisplayName,
+                $"Habitat {habitatIndex + 1}",
                 () => SelectHabitat(habitatIndex));
             habitatButtons.Add(habitatButton);
         }
