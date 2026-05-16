@@ -94,34 +94,6 @@ public sealed class Test1LightingController : MonoBehaviour
 
     private void CreateRuntimeUi()
     {
-        if (runtimePanel != null || SceneManager.GetActiveScene().name != SceneName)
-        {
-            return;
-        }
-
-        Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
-        runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
-            MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
-            "Lighting Controls",
-            new Vector2(300f, 116f));
-
-        MediTerraniaRuntimeUi.CreateTitle(runtimePanel, "Lighting");
-
-        RectTransform row = MediTerraniaRuntimeUi.CreateRow(runtimePanel, "Brightness Row", 28f);
-        brightnessSlider = MediTerraniaRuntimeUi.CreateSlider(row, "Brightness Slider", MinBrightness, MaxBrightness, brightness);
-        brightnessValueText = MediTerraniaRuntimeUi.CreateLabel(row, "Brightness Value", string.Empty, 12f);
-        MediTerraniaRuntimeUi.AddLayoutElement(brightnessValueText.gameObject, 28f);
-
-        RectTransform valueRect = brightnessValueText.rectTransform;
-        valueRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 54f);
-        LayoutElement valueLayout = brightnessValueText.GetComponent<LayoutElement>();
-        valueLayout.preferredWidth = 54f;
-        valueLayout.flexibleWidth = 0f;
-        brightnessValueText.alignment = TextAlignmentOptions.MidlineRight;
-
-        MediTerraniaRuntimeUi.CreateLabel(runtimePanel, "Lighting Hint", "Brighten the underwater scene.", 12f);
-
-        brightnessSlider.onValueChanged.AddListener(SetBrightness);
     }
 
     private void SetBrightness(float value)

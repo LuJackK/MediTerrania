@@ -21,6 +21,7 @@ public sealed class HabitatRopeController : MonoBehaviour
     [SerializeField] private Material ropeMaterial;
     [SerializeField] private List<GameObject> habitatPrefabs = new();
     [SerializeField] private bool createRuntimeUi = true;
+    [SerializeField] private float habitatBottomClearance = 0.08f;
 
     private const string ControllerObjectName = "Habitat Rope Controller";
     private const string EditorRopeMaterialAssetPath = "Assets/Materials/Rope001_1K-PNG/Rope.mat";
@@ -153,10 +154,61 @@ public sealed class HabitatRopeController : MonoBehaviour
         currentHabitat.name = habitat.DisplayName;
         currentHabitat.transform.localScale = spawnScale;
         currentHabitat.SetActive(true);
+        PlaceHabitatOnSeafloor(currentHabitat);
 
         CollectRopes(currentHabitat.transform, currentRopes);
         ApplyRopeMaterial(currentRopes);
         ResetRopes();
+    }
+
+    private void PlaceHabitatOnSeafloor(GameObject habitat)
+    {
+        if (habitat == null)
+        {
+            return;
+        }
+
+        if (!TryGetRendererBounds(habitat, out Bounds bounds))
+        {
+            return;
+        }
+
+        float seafloorY = GetSeafloorY();
+        float liftToBottom = seafloorY + habitatBottomClearance - bounds.min.y;
+        habitat.transform.position += Vector3.up * liftToBottom;
+    }
+
+    private static bool TryGetRendererBounds(GameObject root, out Bounds bounds)
+    {
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        bounds = default;
+        bool hasBounds = false;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null || IsRopeName(renderer.name))
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds = renderer.bounds;
+                hasBounds = true;
+                continue;
+            }
+
+            bounds.Encapsulate(renderer.bounds);
+        }
+
+        return hasBounds;
+    }
+
+    private static float GetSeafloorY()
+    {
+        GameObject seafloor = GameObject.Find("SeaFloor");
+        return seafloor != null ? seafloor.transform.position.y : 0f;
     }
 
     private void CaptureSpawnTransform()
@@ -365,11 +417,31 @@ public sealed class HabitatRopeController : MonoBehaviour
         }
 
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
-        float panelHeight = 148f + habitats.Count * 40f;
+        float panelHeight = 112f + habitats.Count * 42f;
         runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
             MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
             "Habitat Controls",
             new Vector2(300f, panelHeight));
+
+        Image panelImage = runtimePanel.GetComponent<Image>();
+        if (panelImage != null)
+        {
+            panelImage.color = Color.clear;
+            panelImage.raycastTarget = false;
+        }
+
+        Outline panelOutline = runtimePanel.GetComponent<Outline>();
+        if (panelOutline != null)
+        {
+            panelOutline.enabled = false;
+        }
+
+        VerticalLayoutGroup layout = runtimePanel.GetComponent<VerticalLayoutGroup>();
+        if (layout != null)
+        {
+            layout.spacing = 6f;
+            layout.padding = new RectOffset(14, 14, 14, 14);
+        }
 
         MediTerraniaRuntimeUi.CreateTitle(runtimePanel, "Habitat");
         habitatButtons.Clear();
@@ -385,10 +457,7 @@ public sealed class HabitatRopeController : MonoBehaviour
             habitatButtons.Add(habitatButton);
         }
 
-        RectTransform row = MediTerraniaRuntimeUi.CreateRow(runtimePanel, "Rope Actions", 34f);
-        addRopeButton = MediTerraniaRuntimeUi.CreateButton(row, "Add Rope", "Add rope", AddNextRope);
-        resetRopeButton = MediTerraniaRuntimeUi.CreateButton(row, "Reset Ropes", "Reset", ResetRopes);
-        ropeCountText = MediTerraniaRuntimeUi.CreateLabel(runtimePanel, "Rope Count", string.Empty);
+        addRopeButton = MediTerraniaRuntimeUi.CreateButton(runtimePanel, "Add Rope", "Add rope", AddNextRope);
     }
 
     private void RefreshHabitatButtons()

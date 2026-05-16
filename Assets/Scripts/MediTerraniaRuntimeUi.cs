@@ -72,6 +72,34 @@ public static class MediTerraniaRuntimeUi
             360f);
     }
 
+    public static Image EnsureDepthShade(Canvas canvas = null)
+    {
+        canvas ??= EnsureCanvas();
+
+        Transform existing = canvas.transform.Find("Depth Darkness Overlay");
+        if (existing != null && existing.TryGetComponent(out Image existingImage))
+        {
+            existing.SetAsFirstSibling();
+            return existingImage;
+        }
+
+        GameObject shade = new("Depth Darkness Overlay", typeof(RectTransform), typeof(Image));
+        shade.transform.SetParent(canvas.transform, false);
+        shade.transform.SetAsFirstSibling();
+
+        RectTransform rectTransform = shade.GetComponent<RectTransform>();
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.offsetMin = Vector2.zero;
+        rectTransform.offsetMax = Vector2.zero;
+
+        Image image = shade.GetComponent<Image>();
+        image.sprite = SolidSprite;
+        image.color = new Color(0f, 0.05f, 0.09f, 0.04f);
+        image.raycastTarget = false;
+        return image;
+    }
+
     public static RectTransform CreatePanel(
         Transform parent,
         string name,
@@ -356,7 +384,7 @@ public static class MediTerraniaRuntimeUi
 
         VerticalLayoutGroup layout = column.GetComponent<VerticalLayoutGroup>();
         layout.padding = new RectOffset(0, 0, 0, 0);
-        layout.spacing = 12f;
+        layout.spacing = 8f;
         layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
