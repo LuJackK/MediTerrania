@@ -46,9 +46,13 @@ public class Boid : MonoBehaviour {
     }
 
     public void SetColour (Color col) {
-        if (material != null) {
-            material.color = col;
-        }
+        
+        //ADDDEDDD THIS 
+        // if (material != null) {
+        //     //Debug.Log ("Hello this did happen it did not find the material");
+        //     //material.color = col;
+        // }
+        //ADDDEDDD THIS 
     }
 
     public void UpdateBoid () {

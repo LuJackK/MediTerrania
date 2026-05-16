@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a1f7f52c-74cd-4339-b956-9e884a4d162e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/TestPrefabs/Cube.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/BoidStuff/TestPrefabs/Cube.prefab" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/TestPrefabs/New Material.mat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/TestPrefabs/New Material.mat.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Alja Scena.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Alja Scena.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Boids/Boid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Boids/Boid.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Boids/BoidManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Boids/BoidManager.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,6 +23,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ccb8c0d153754c2e87d5456ba3bd6d35212200/15/7913f078/Object.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ccb8c0d153754c2e87d5456ba3bd6d35212200/a5/8eecd419/MeshRenderer.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 6
@@ -109,7 +116,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1778963792468</updated>
-      <workItem from="1778963794919" duration="2820000" />
+      <workItem from="1778963794919" duration="5267000" />
     </task>
     <servers />
   </component>
