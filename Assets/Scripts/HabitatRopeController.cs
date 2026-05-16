@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem.UI;
@@ -17,12 +18,12 @@ using UnityEditor;
 public sealed class HabitatRopeController : MonoBehaviour
 {
     [SerializeField] private GameObject initialHabitat;
+    [SerializeField] private Material ropeMaterial;
     [SerializeField] private List<GameObject> habitatPrefabs = new();
     [SerializeField] private bool createRuntimeUi = true;
-    [SerializeField] private Vector2 uiOffset = new(24f, -24f);
 
     private const string ControllerObjectName = "Habitat Rope Controller";
-    private const string CanvasObjectName = "Habitat Rope UI";
+    private const string EditorRopeMaterialAssetPath = "Assets/Materials/Rope001_1K-PNG/Rope.mat";
 
     private static readonly string[] EditorHabitatAssetPaths =
     {
@@ -41,16 +42,33 @@ public sealed class HabitatRopeController : MonoBehaviour
     private GameObject currentHabitat;
     private int selectedHabitatIndex;
     private int visibleRopeCount;
-
-    private Dropdown habitatDropdown;
+    private RectTransform runtimePanel;
+    private readonly List<Button> habitatButtons = new();
     private Button addRopeButton;
-    private Button resetRopesButton;
-    private Text ropeCountText;
+    private Button resetRopeButton;
+    private TMP_Text ropeCountText;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RegisterSceneLoadedCallback()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void CreateForTestScene()
+    private static void CreateForActiveTestScene()
     {
-        if (SceneManager.GetActiveScene().name != "Test1")
+        CreateForScene(SceneManager.GetActiveScene());
+    }
+
+    private static void HandleSceneLoaded(Scene scene, LoadSceneMode loadMode)
+    {
+        CreateForScene(scene);
+    }
+
+    private static void CreateForScene(Scene scene)
+    {
+        if (scene.name != "Test1")
         {
             return;
         }
@@ -65,7 +83,9 @@ public sealed class HabitatRopeController : MonoBehaviour
 
     private void Awake()
     {
+        DisableUnsupportedEventSystemModules();
         CaptureSpawnTransform();
+        LoadDefaultRopeMaterial();
         BuildHabitatList();
 
         if (habitats.Count == 0)
@@ -75,12 +95,18 @@ public sealed class HabitatRopeController : MonoBehaviour
             return;
         }
 
-        if (createRuntimeUi)
-        {
-            BuildUi();
-        }
-
         SelectHabitat(0);
+        CreateRuntimeUi();
+        UpdateUiState();
+    }
+
+    private void OnDestroy()
+    {
+        if (runtimePanel != null)
+        {
+            Destroy(runtimePanel.gameObject);
+            runtimePanel = null;
+        }
     }
 
     public void AddNextRope()
@@ -129,6 +155,7 @@ public sealed class HabitatRopeController : MonoBehaviour
         currentHabitat.SetActive(true);
 
         CollectRopes(currentHabitat.transform, currentRopes);
+        ApplyRopeMaterial(currentRopes);
         ResetRopes();
     }
 
@@ -172,6 +199,18 @@ public sealed class HabitatRopeController : MonoBehaviour
             GameObject habitatAsset = AssetDatabase.LoadAssetAtPath<GameObject>(EditorHabitatAssetPaths[i]);
             AddHabitatPrefab(habitatAsset);
         }
+#endif
+    }
+
+    private void LoadDefaultRopeMaterial()
+    {
+        if (ropeMaterial != null)
+        {
+            return;
+        }
+
+#if UNITY_EDITOR
+        ropeMaterial = AssetDatabase.LoadAssetAtPath<Material>(EditorRopeMaterialAssetPath);
 #endif
     }
 
@@ -241,6 +280,36 @@ public sealed class HabitatRopeController : MonoBehaviour
         ropes.Sort(CompareRopeObjects);
     }
 
+    private void ApplyRopeMaterial(List<GameObject> ropes)
+    {
+        if (ropeMaterial == null)
+        {
+            Debug.LogWarning($"Rope material was not found at {EditorRopeMaterialAssetPath}.");
+            return;
+        }
+
+        for (int i = 0; i < ropes.Count; i++)
+        {
+            Renderer[] renderers = ropes[i].GetComponentsInChildren<Renderer>(true);
+            for (int j = 0; j < renderers.Length; j++)
+            {
+                Material[] materials = renderers[j].sharedMaterials;
+                if (materials == null || materials.Length == 0)
+                {
+                    renderers[j].sharedMaterial = ropeMaterial;
+                    continue;
+                }
+
+                for (int k = 0; k < materials.Length; k++)
+                {
+                    materials[k] = ropeMaterial;
+                }
+
+                renderers[j].sharedMaterials = materials;
+            }
+        }
+    }
+
     private static bool IsRopeName(string objectName)
     {
         string normalized = RemoveDiacritics(objectName).ToLowerInvariant();
@@ -288,291 +357,87 @@ public sealed class HabitatRopeController : MonoBehaviour
         return builder.ToString().Normalize(NormalizationForm.FormC);
     }
 
-    private void BuildUi()
+    private void CreateRuntimeUi()
     {
-        EnsureEventSystem();
+        if (!createRuntimeUi || runtimePanel != null || habitats.Count == 0)
+        {
+            return;
+        }
 
-        Canvas existingCanvas = FindCanvas();
-        Canvas canvas = existingCanvas != null ? existingCanvas : CreateCanvas();
-        Transform panel = CreatePanel(canvas.transform);
+        Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
+        float panelHeight = 148f + habitats.Count * 40f;
+        runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
+            MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
+            "Habitat Controls",
+            new Vector2(300f, panelHeight));
 
-        Text title = CreateText("Title", panel, "Habitat", 18, FontStyle.Bold);
-        SetRect(title.rectTransform, new Vector2(16f, -12f), new Vector2(248f, 28f));
+        MediTerraniaRuntimeUi.CreateTitle(runtimePanel, "Habitat");
+        habitatButtons.Clear();
 
-        habitatDropdown = CreateDropdown(panel);
-        SetRect(habitatDropdown.GetComponent<RectTransform>(), new Vector2(16f, -48f), new Vector2(248f, 34f));
-        habitatDropdown.ClearOptions();
-
-        List<string> options = new();
         for (int i = 0; i < habitats.Count; i++)
         {
-            options.Add(habitats[i].DisplayName);
+            int habitatIndex = i;
+            Button habitatButton = MediTerraniaRuntimeUi.CreateButton(
+                runtimePanel,
+                $"Habitat {habitatIndex + 1}",
+                habitats[i].DisplayName,
+                () => SelectHabitat(habitatIndex));
+            habitatButtons.Add(habitatButton);
         }
 
-        habitatDropdown.AddOptions(options);
-        habitatDropdown.onValueChanged.AddListener(SelectHabitat);
-
-        addRopeButton = CreateButton("AddRopeButton", panel, "Add rope");
-        SetRect(addRopeButton.GetComponent<RectTransform>(), new Vector2(16f, -92f), new Vector2(118f, 34f));
-        addRopeButton.onClick.AddListener(AddNextRope);
-
-        resetRopesButton = CreateButton("ResetRopesButton", panel, "Reset");
-        SetRect(resetRopesButton.GetComponent<RectTransform>(), new Vector2(146f, -92f), new Vector2(118f, 34f));
-        resetRopesButton.onClick.AddListener(ResetRopes);
-
-        ropeCountText = CreateText("RopeCount", panel, string.Empty, 14, FontStyle.Normal);
-        SetRect(ropeCountText.rectTransform, new Vector2(16f, -132f), new Vector2(248f, 24f));
+        RectTransform row = MediTerraniaRuntimeUi.CreateRow(runtimePanel, "Rope Actions", 34f);
+        addRopeButton = MediTerraniaRuntimeUi.CreateButton(row, "Add Rope", "Add rope", AddNextRope);
+        resetRopeButton = MediTerraniaRuntimeUi.CreateButton(row, "Reset Ropes", "Reset", ResetRopes);
+        ropeCountText = MediTerraniaRuntimeUi.CreateLabel(runtimePanel, "Rope Count", string.Empty);
     }
 
-    private static void EnsureEventSystem()
+    private void RefreshHabitatButtons()
     {
-        EventSystem eventSystem = FindFirstObjectByType<EventSystem>(FindObjectsInactive.Include);
-        if (eventSystem == null)
+        for (int i = 0; i < habitatButtons.Count; i++)
         {
-            GameObject eventSystemObject = new("EventSystem");
-            eventSystem = eventSystemObject.AddComponent<EventSystem>();
+            MediTerraniaRuntimeUi.SetButtonSelected(habitatButtons[i], i == selectedHabitatIndex);
         }
+    }
 
+    private static void DisableUnsupportedEventSystemModules()
+    {
 #if ENABLE_INPUT_SYSTEM
-        if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
+        StandaloneInputModule[] standaloneModules =
+            FindObjectsByType<StandaloneInputModule>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+        for (int i = 0; i < standaloneModules.Length; i++)
         {
-            eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            standaloneModules[i].enabled = false;
         }
 
-        StandaloneInputModule standaloneInputModule = eventSystem.GetComponent<StandaloneInputModule>();
-        if (standaloneInputModule != null)
+        EventSystem[] eventSystems = FindObjectsByType<EventSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < eventSystems.Length; i++)
         {
-            standaloneInputModule.enabled = false;
-        }
-#else
-        if (eventSystem.GetComponent<BaseInputModule>() == null)
-        {
-            eventSystem.gameObject.AddComponent<StandaloneInputModule>();
+            if (eventSystems[i].GetComponent<InputSystemUIInputModule>() == null)
+            {
+                eventSystems[i].gameObject.AddComponent<InputSystemUIInputModule>();
+            }
         }
 #endif
     }
 
-    private static Canvas FindCanvas()
-    {
-        Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        for (int i = 0; i < canvases.Length; i++)
-        {
-            if (canvases[i].renderMode == RenderMode.ScreenSpaceOverlay)
-            {
-                return canvases[i];
-            }
-        }
-
-        return null;
-    }
-
-    private static Canvas CreateCanvas()
-    {
-        GameObject canvasObject = new(CanvasObjectName, typeof(RectTransform));
-        Canvas canvas = canvasObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvasObject.AddComponent<CanvasScaler>();
-        canvasObject.AddComponent<GraphicRaycaster>();
-        return canvas;
-    }
-
-    private Transform CreatePanel(Transform parent)
-    {
-        GameObject panelObject = new("HabitatRopePanel", typeof(RectTransform));
-        panelObject.transform.SetParent(parent, false);
-
-        Image panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0.04f, 0.08f, 0.1f, 0.82f);
-
-        RectTransform rectTransform = panelObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = uiOffset;
-        rectTransform.sizeDelta = new Vector2(280f, 168f);
-
-        return panelObject.transform;
-    }
-
-    private static Dropdown CreateDropdown(Transform parent)
-    {
-        GameObject dropdownObject = new("HabitatDropdown", typeof(RectTransform));
-        dropdownObject.transform.SetParent(parent, false);
-
-        Image image = dropdownObject.AddComponent<Image>();
-        image.color = new Color(0.95f, 0.96f, 0.94f, 1f);
-
-        Dropdown dropdown = dropdownObject.AddComponent<Dropdown>();
-
-        Text label = CreateText("Label", dropdownObject.transform, string.Empty, 14, FontStyle.Normal);
-        label.color = new Color(0.08f, 0.09f, 0.1f, 1f);
-        SetRect(label.rectTransform, new Vector2(10f, -3f), new Vector2(204f, 28f));
-        dropdown.captionText = label;
-
-        Text arrow = CreateText("Arrow", dropdownObject.transform, "v", 16, FontStyle.Bold);
-        arrow.color = new Color(0.08f, 0.09f, 0.1f, 1f);
-        arrow.alignment = TextAnchor.MiddleCenter;
-        SetRect(arrow.rectTransform, new Vector2(216f, -3f), new Vector2(24f, 28f));
-
-        RectTransform template = CreateDropdownTemplate(dropdownObject.transform, label.font);
-        dropdown.template = template;
-        dropdown.itemText = template.GetComponentInChildren<Toggle>(true).GetComponentInChildren<Text>(true);
-
-        return dropdown;
-    }
-
-    private static RectTransform CreateDropdownTemplate(Transform parent, Font font)
-    {
-        GameObject templateObject = new("Template", typeof(RectTransform));
-        templateObject.SetActive(false);
-        templateObject.transform.SetParent(parent, false);
-
-        Image templateImage = templateObject.AddComponent<Image>();
-        templateImage.color = new Color(0.95f, 0.96f, 0.94f, 1f);
-
-        ScrollRect scrollRect = templateObject.AddComponent<ScrollRect>();
-        scrollRect.horizontal = false;
-
-        RectTransform templateRect = templateObject.GetComponent<RectTransform>();
-        SetRect(templateRect, new Vector2(0f, -36f), new Vector2(248f, 108f));
-
-        GameObject viewportObject = new("Viewport", typeof(RectTransform));
-        viewportObject.transform.SetParent(templateObject.transform, false);
-        Image viewportImage = viewportObject.AddComponent<Image>();
-        viewportImage.color = new Color(1f, 1f, 1f, 0.08f);
-        Mask mask = viewportObject.AddComponent<Mask>();
-        mask.showMaskGraphic = false;
-        RectTransform viewportRect = viewportObject.GetComponent<RectTransform>();
-        Stretch(viewportRect);
-
-        GameObject contentObject = new("Content", typeof(RectTransform));
-        contentObject.transform.SetParent(viewportObject.transform, false);
-        RectTransform contentRect = contentObject.GetComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0f, 1f);
-        contentRect.anchorMax = new Vector2(1f, 1f);
-        contentRect.pivot = new Vector2(0.5f, 1f);
-        contentRect.anchoredPosition = Vector2.zero;
-        contentRect.sizeDelta = new Vector2(0f, 34f);
-
-        GameObject itemObject = new("Item", typeof(RectTransform));
-        itemObject.transform.SetParent(contentObject.transform, false);
-        Toggle toggle = itemObject.AddComponent<Toggle>();
-        Image itemImage = itemObject.AddComponent<Image>();
-        itemImage.color = new Color(0.95f, 0.96f, 0.94f, 1f);
-        toggle.targetGraphic = itemImage;
-        toggle.graphic = null;
-
-        RectTransform itemRect = itemObject.GetComponent<RectTransform>();
-        itemRect.anchorMin = new Vector2(0f, 0.5f);
-        itemRect.anchorMax = new Vector2(1f, 0.5f);
-        itemRect.pivot = new Vector2(0.5f, 0.5f);
-        itemRect.sizeDelta = new Vector2(0f, 32f);
-
-        GameObject itemTextObject = new("Item Label", typeof(RectTransform));
-        itemTextObject.transform.SetParent(itemObject.transform, false);
-
-        Text itemText = itemTextObject.AddComponent<Text>();
-        itemText.font = font;
-        itemText.fontSize = 14;
-        itemText.color = new Color(0.08f, 0.09f, 0.1f, 1f);
-        itemText.alignment = TextAnchor.MiddleLeft;
-        itemText.raycastTarget = false;
-        itemText.supportRichText = false;
-
-        RectTransform itemTextRect = itemText.rectTransform;
-        itemTextRect.anchorMin = new Vector2(0f, 0f);
-        itemTextRect.anchorMax = new Vector2(1f, 1f);
-        itemTextRect.offsetMin = new Vector2(10f, 0f);
-        itemTextRect.offsetMax = new Vector2(-10f, 0f);
-
-        scrollRect.viewport = viewportRect;
-        scrollRect.content = contentRect;
-
-        return templateRect;
-    }
-
-    private static Button CreateButton(string objectName, Transform parent, string label)
-    {
-        GameObject buttonObject = new(objectName, typeof(RectTransform));
-        buttonObject.transform.SetParent(parent, false);
-
-        Image image = buttonObject.AddComponent<Image>();
-        image.color = new Color(0.87f, 0.62f, 0.24f, 1f);
-
-        Button button = buttonObject.AddComponent<Button>();
-        button.targetGraphic = image;
-
-        ColorBlock colors = button.colors;
-        colors.highlightedColor = new Color(0.98f, 0.76f, 0.36f, 1f);
-        colors.pressedColor = new Color(0.64f, 0.42f, 0.14f, 1f);
-        colors.disabledColor = new Color(0.35f, 0.36f, 0.36f, 0.8f);
-        button.colors = colors;
-
-        Text text = CreateText("Text", buttonObject.transform, label, 14, FontStyle.Bold);
-        text.alignment = TextAnchor.MiddleCenter;
-        text.color = new Color(0.05f, 0.06f, 0.07f, 1f);
-        Stretch(text.rectTransform);
-
-        return button;
-    }
-
-    private static Text CreateText(string objectName, Transform parent, string value, int fontSize, FontStyle fontStyle)
-    {
-        GameObject textObject = new(objectName, typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-
-        Text text = textObject.AddComponent<Text>();
-        text.text = value;
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf") ??
-            Resources.GetBuiltinResource<Font>("Arial.ttf");
-        text.fontSize = fontSize;
-        text.fontStyle = fontStyle;
-        text.color = Color.white;
-        text.alignment = TextAnchor.MiddleLeft;
-        text.raycastTarget = false;
-        text.supportRichText = false;
-
-        return text;
-    }
-
-    private static void SetRect(RectTransform rectTransform, Vector2 anchoredPosition, Vector2 size)
-    {
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = anchoredPosition;
-        rectTransform.sizeDelta = size;
-    }
-
-    private static void Stretch(RectTransform rectTransform)
-    {
-        rectTransform.anchorMin = Vector2.zero;
-        rectTransform.anchorMax = Vector2.one;
-        rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        rectTransform.offsetMin = Vector2.zero;
-        rectTransform.offsetMax = Vector2.zero;
-    }
-
     private void UpdateUiState()
     {
+        RefreshHabitatButtons();
+
         if (addRopeButton != null)
         {
             addRopeButton.interactable = visibleRopeCount < currentRopes.Count;
         }
 
-        if (resetRopesButton != null)
+        if (resetRopeButton != null)
         {
-            resetRopesButton.interactable = visibleRopeCount > 0;
+            resetRopeButton.interactable = visibleRopeCount > 0;
         }
 
         if (ropeCountText != null)
         {
             ropeCountText.text = $"{visibleRopeCount} / {currentRopes.Count} ropes visible";
-        }
-
-        if (habitatDropdown != null && habitatDropdown.value != selectedHabitatIndex)
-        {
-            habitatDropdown.SetValueWithoutNotify(selectedHabitatIndex);
         }
     }
 

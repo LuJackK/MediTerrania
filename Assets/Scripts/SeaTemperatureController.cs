@@ -28,8 +28,19 @@ public class SeaTemperatureController : MonoBehaviour
 
     private void Start()
     {
+        RefreshUI();
+    }
+
+    public void RefreshUI()
+    {
         ConfigureThermometerFill();
         UpdateUI();
+    }
+
+    private void OnValidate()
+    {
+        seaTemperature = Mathf.Clamp(seaTemperature, minTemperature, maxTemperature);
+        ConfigureThermometerFill();
     }
 
     private void UpdateUI()
@@ -58,11 +69,5 @@ public class SeaTemperatureController : MonoBehaviour
         thermometerFill.type = Image.Type.Filled;
         thermometerFill.fillMethod = Image.FillMethod.Vertical;
         thermometerFill.fillOrigin = (int)Image.OriginVertical.Bottom;
-    }
-
-    private void OnValidate()
-    {
-        seaTemperature = Mathf.Clamp(seaTemperature, minTemperature, maxTemperature);
-        ConfigureThermometerFill();
     }
 }

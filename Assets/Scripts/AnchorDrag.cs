@@ -42,6 +42,13 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         MoveAnchor(eventData);
     }
 
+    public void RefreshDepth()
+    {
+        anchorRect ??= (RectTransform)transform;
+        CacheTrackLimits();
+        UpdateDepthFromPosition();
+    }
+
     private void CacheTrackLimits()
     {
         if (track == null)
