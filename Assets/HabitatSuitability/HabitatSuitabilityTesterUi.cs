@@ -33,6 +33,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
     private float smallHoleDensity = 0.85f;
     private float cleanCavities = 0.86f;
     private float sedimentCloggingRisk = 0.14f;
+    private float ropeCount;
     private float surfaceRoughness = 0.8f;
     private float shelterAvailability = 0.82f;
 
@@ -143,6 +144,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
         CreateSlider("Small holes", "0.00", 0f, 1f, () => smallHoleDensity, value => smallHoleDensity = value);
         CreateSlider("Clean cavities", "0.00", 0f, 1f, () => cleanCavities, value => cleanCavities = value);
         CreateSlider("Sediment risk", "0.00", 0f, 1f, () => sedimentCloggingRisk, value => sedimentCloggingRisk = value);
+        CreateSlider("Ropes", "0", 0f, 10f, () => ropeCount, value => ropeCount = Mathf.Round(value));
         CreateSlider("Surface roughness", "0.00", 0f, 1f, () => surfaceRoughness, value => surfaceRoughness = value);
         CreateSlider("Shelter", "0.00", 0f, 1f, () => shelterAvailability, value => shelterAvailability = value);
 
@@ -187,6 +189,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
         smallHoleDensity = 0.85f;
         cleanCavities = 0.86f;
         sedimentCloggingRisk = 0.14f;
+        ropeCount = 0f;
         surfaceRoughness = 0.8f;
         shelterAvailability = 0.82f;
         RefreshAll();
@@ -206,6 +209,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
         smallHoleDensity = 0.88f;
         cleanCavities = 0.88f;
         sedimentCloggingRisk = 0.12f;
+        ropeCount = 0f;
         surfaceRoughness = 0.82f;
         shelterAvailability = 0.85f;
         RefreshAll();
@@ -225,6 +229,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
         smallHoleDensity = 0.04f;
         cleanCavities = 0.1f;
         sedimentCloggingRisk = 0.9f;
+        ropeCount = 0f;
         surfaceRoughness = 0.08f;
         shelterAvailability = 0.08f;
         RefreshAll();
@@ -299,7 +304,7 @@ public sealed class HabitatSuitabilityTesterUi : MonoBehaviour
         }
 
         ReefMetrics metrics = BuildMetrics();
-        float score = HabitatSuitabilityScorer.ComputeSuitabilityScore(species, metrics);
+        float score = HabitatSuitabilityScorer.ComputeSuitabilityScore(species, metrics, Mathf.RoundToInt(ropeCount));
         speciesLabel.text = $"{species.scientificName} ({species.commonName})";
         scoreLabel.text = score.ToString("0.000");
         scoreClassLabel.text = HabitatSuitabilityScorer.ClassifySuitability(score);

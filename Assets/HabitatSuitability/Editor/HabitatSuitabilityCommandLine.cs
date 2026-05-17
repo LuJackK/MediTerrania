@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -10,6 +11,10 @@ public static class HabitatSuitabilityCommandLine
         string speciesId = GetArgumentValue("-speciesId", "parablennius_rouxi");
         string scenario = GetArgumentValue("-scenario", "all").ToLowerInvariant();
         string outputPath = GetArgumentValue("-outputFile", GetDefaultOutputPath());
+        int ropeCount = GetIntArgumentValue("-ropeCount", 0);
+        float sedimentationReductionPerRope = GetFloatArgumentValue(
+            "-sedimentationReductionPerRope",
+            HabitatSuitabilityScorer.DefaultSedimentationReductionPerRope);
         List<string> outputLines = new List<string>();
 
         SpeciesSuitabilityDatabase database = SpeciesSuitabilityLoader.LoadFromStreamingAssets();
@@ -22,12 +27,26 @@ public static class HabitatSuitabilityCommandLine
 
         if (scenario == "all" || scenario == "good")
         {
-            RunScenario("Good shallow rocky reef", speciesId, database, BuildGoodRockyReef(), outputLines);
+            RunScenario(
+                "Good shallow rocky reef",
+                speciesId,
+                database,
+                BuildGoodRockyReef(),
+                ropeCount,
+                sedimentationReductionPerRope,
+                outputLines);
         }
 
         if (scenario == "all" || scenario == "poor")
         {
-            RunScenario("Poor deep sandy clogged reef", speciesId, database, BuildPoorDeepSandyReef(), outputLines);
+            RunScenario(
+                "Poor deep sandy clogged reef",
+                speciesId,
+                database,
+                BuildPoorDeepSandyReef(),
+                ropeCount,
+                sedimentationReductionPerRope,
+                outputLines);
         }
 
         WriteResultsFile(outputPath, outputLines);
@@ -39,6 +58,8 @@ public static class HabitatSuitabilityCommandLine
         string speciesId,
         SpeciesSuitabilityDatabase database,
         ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope,
         List<string> outputLines)
     {
         WriteLine($"--- Habitat suitability command-line test: {scenarioName} ---", outputLines);
@@ -52,20 +73,35 @@ public static class HabitatSuitabilityCommandLine
                 return;
             }
 
-            LogResult(species, reefMetrics, outputLines);
+            LogResult(species, reefMetrics, ropeCount, sedimentationReductionPerRope, outputLines);
             return;
         }
 
         for (int i = 0; i < database.species.Count; i++)
         {
-            LogResult(database.species[i], reefMetrics, outputLines);
+            LogResult(database.species[i], reefMetrics, ropeCount, sedimentationReductionPerRope, outputLines);
         }
     }
 
-    private static void LogResult(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics, List<string> outputLines)
+    private static void LogResult(
+        SpeciesSuitabilityConfig species,
+        ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope,
+        List<string> outputLines)
     {
-        float score = HabitatSuitabilityScorer.ComputeSuitabilityScore(species, reefMetrics);
-        WriteLine($"{species.scientificName} ({species.commonName}): {score:0.000}", outputLines);
+        SuitabilityResult result = HabitatSuitabilityScorer.ComputeSuitability(
+            species,
+            reefMetrics,
+            ropeCount,
+            sedimentationReductionPerRope);
+        float sedimentReduction = HabitatSuitabilityScorer.ComputeRopeSedimentationReduction(
+            ropeCount,
+            sedimentationReductionPerRope);
+        WriteLine(
+            $"{species.scientificName} ({species.commonName}): {result.finalScore:0.000} " +
+            $"| ropes {ropeCount}, sediment reduction {sedimentReduction:0.00}",
+            outputLines);
     }
 
     private static string GetArgumentValue(string argumentName, string fallback)
@@ -80,6 +116,22 @@ public static class HabitatSuitabilityCommandLine
         }
 
         return fallback;
+    }
+
+    private static int GetIntArgumentValue(string argumentName, int fallback)
+    {
+        string value = GetArgumentValue(argumentName, string.Empty);
+        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int result)
+            ? Mathf.Max(0, result)
+            : fallback;
+    }
+
+    private static float GetFloatArgumentValue(string argumentName, float fallback)
+    {
+        string value = GetArgumentValue(argumentName, string.Empty);
+        return float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result)
+            ? Mathf.Max(0f, result)
+            : fallback;
     }
 
     private static void WriteLine(string message, List<string> outputLines, bool isError = false)

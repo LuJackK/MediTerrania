@@ -12,6 +12,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     [Header("UI")]
     public RectTransform track;
+    public Image trackFill;
     public TMP_Text depthText;
     public float anchorXOffset = 0f;
 
@@ -20,7 +21,8 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     public Image darknessOverlay;
     public float surfaceHiddenDepthMeters = 15f;
     public float cameraDropAtHiddenSurface = 2f;
-    public float surfaceRiseAtMaxDepth = 18f;
+    public float surfaceRiseAtMaxDepth = 28f;
+    public float surfaceRiseAcceleration = 1.7f;
     public Color shallowDarknessColor = new(0f, 0.05f, 0.09f, 0.03f);
     public Color deepDarknessColor = new(0f, 0.025f, 0.07f, 0.34f);
 
@@ -52,6 +54,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         surfaceHiddenDepthMeters = Mathf.Clamp(surfaceHiddenDepthMeters, minDepthMeters, maxDepthMeters);
         cameraDropAtHiddenSurface = Mathf.Max(0f, cameraDropAtHiddenSurface);
         surfaceRiseAtMaxDepth = Mathf.Max(0f, surfaceRiseAtMaxDepth);
+        surfaceRiseAcceleration = Mathf.Max(0.01f, surfaceRiseAcceleration);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -160,6 +163,11 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         lastNormalizedDepth = normalizedDepth;
         CurrentDepthMeters = Mathf.Lerp(minDepthMeters, maxDepthMeters, normalizedDepth);
 
+        if (trackFill != null)
+        {
+            trackFill.fillAmount = normalizedDepth;
+        }
+
         if (depthText != null)
         {
             depthText.text = Mathf.RoundToInt(CurrentDepthMeters) + " m";
@@ -217,7 +225,8 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     private void ApplySurfaceDepthShift(float normalizedDepth)
     {
         CacheSurfaceShiftTargets();
-        Vector3 shift = Vector3.up * (surfaceRiseAtMaxDepth * normalizedDepth);
+        float acceleratedDepth = 1f - Mathf.Pow(1f - Mathf.Clamp01(normalizedDepth), surfaceRiseAcceleration);
+        Vector3 shift = Vector3.up * (surfaceRiseAtMaxDepth * acceleratedDepth);
 
         for (int i = surfaceShiftTargets.Count - 1; i >= 0; i--)
         {

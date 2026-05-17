@@ -29,6 +29,9 @@ public class HabitatSuitabilityTestCase : MonoBehaviour
     [Range(0f, 1f)] [SerializeField] private float mixedLightShadow = 0.7f;
     [Range(0f, 1f)] [SerializeField] private float cleanCavities = 0.86f;
     [Range(0f, 1f)] [SerializeField] private float sedimentCloggingRisk = 0.14f;
+    [Min(0)] [SerializeField] private int ropeCount;
+    [Range(0f, 0.25f)] [SerializeField] private float sedimentationReductionPerRope =
+        HabitatSuitabilityScorer.DefaultSedimentationReductionPerRope;
     [Range(0f, 1f)] [SerializeField] private float surfaceRoughness = 0.8f;
     [Range(0f, 1f)] [SerializeField] private float openSwimVolume = 0.5f;
     [Range(0f, 1f)] [SerializeField] private float verticalRelief = 0.65f;
@@ -81,20 +84,33 @@ public class HabitatSuitabilityTestCase : MonoBehaviour
                 return;
             }
 
-            LogResult(species, reefMetrics);
+            LogResult(species, reefMetrics, ropeCount, sedimentationReductionPerRope);
             return;
         }
 
         for (int i = 0; i < database.species.Count; i++)
         {
-            LogResult(database.species[i], reefMetrics);
+            LogResult(database.species[i], reefMetrics, ropeCount, sedimentationReductionPerRope);
         }
     }
 
-    private static void LogResult(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)
+    private static void LogResult(
+        SpeciesSuitabilityConfig species,
+        ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope)
     {
-        float score = HabitatSuitabilityScorer.ComputeSuitabilityScore(species, reefMetrics);
-        Debug.Log($"{species.scientificName} ({species.commonName}): {score:0.000}");
+        SuitabilityResult result = HabitatSuitabilityScorer.ComputeSuitability(
+            species,
+            reefMetrics,
+            ropeCount,
+            sedimentationReductionPerRope);
+        float sedimentReduction = HabitatSuitabilityScorer.ComputeRopeSedimentationReduction(
+            ropeCount,
+            sedimentationReductionPerRope);
+        Debug.Log(
+            $"{result.scientificName} ({result.commonName}): {result.finalScore:0.000} " +
+            $"| ropes {ropeCount}, sediment reduction {sedimentReduction:0.00}");
     }
 
     private ReefMetrics BuildReefMetricsFromInspector()

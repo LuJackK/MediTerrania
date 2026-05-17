@@ -12,6 +12,14 @@ Unity does not train models or run Python. It loads `Assets/StreamingAssets/spec
 final_score = (environmentWeight * environment_score + microhabitatWeight * microhabitat_score) * critical_multiplier
 ```
 
+Scoring can also take a rope count:
+
+```text
+rope_sedimentation_reduction = clamp(ropeCount * sedimentationReductionPerRope, 0, 0.75)
+```
+
+The default reduction rate is `0.08` per rope. Before scoring, rope mitigation lowers `sedimentCloggingRisk` and `sandySubstrate`, and improves the inverse sediment proxies `cleanCavities` and `substrateSuitability`. This keeps existing species configs useful because the current fish are affected by sediment mostly through clean cavities and substrate quality.
+
 All metric values must be normalized to `0..1` before scoring. Use `ReefMetricNormalizer.RangeSuitability` for values such as depth where suitability is highest inside an ideal range and falls off outside it.
 
 To add a species, add another object to the JSON `species` list. To add a feature, either use an existing `ReefMetrics` field or add it to `ReefMetrics.additionalMetrics` with the same feature name used in JSON.
@@ -36,6 +44,7 @@ Start-Process -FilePath $unity -Wait -NoNewWindow -ArgumentList @(
   "-executeMethod", "HabitatSuitabilityCommandLine.Run",
   "-speciesId", "parablennius_rouxi",
   "-scenario", "all",
+  "-ropeCount", "3",
   "-outputFile", $results,
   "-logFile", $log
 )

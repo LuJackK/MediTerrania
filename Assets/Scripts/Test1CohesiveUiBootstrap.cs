@@ -116,8 +116,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
 
         panel.SetParent(rightColumn, false);
         panel.SetAsFirstSibling();
-        panel.sizeDelta = new Vector2(350f, 260f);
-        MediTerraniaRuntimeUi.AddLayoutElement(panel.gameObject, 260f, preferredWidth: 350f);
+        panel.sizeDelta = new Vector2(320f, 194f);
+        MediTerraniaRuntimeUi.AddLayoutElement(panel.gameObject, 194f, preferredWidth: 320f);
         StyleTemperaturePanel(panel);
 
         controller.temperatureText = FindNamed<TMP_Text>(panel.gameObject, "Temperature Text");
@@ -152,18 +152,18 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         RectTransform panel = MediTerraniaRuntimeUi.CreatePanel(
             rightColumn,
             "Anchor Controls",
-            new Vector2(350f, 300f));
+            new Vector2(320f, 272f));
         MediTerraniaRuntimeUi.CreateTitle(panel, "Anchor Depth");
 
         GameObject wellObject = new("Anchor Depth Well", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
         wellObject.transform.SetParent(panel, false);
-        MediTerraniaRuntimeUi.AddLayoutElement(wellObject, 242f);
+        MediTerraniaRuntimeUi.AddLayoutElement(wellObject, 214f);
 
         RectTransform wellRect = wellObject.GetComponent<RectTransform>();
         Image wellImage = wellObject.GetComponent<Image>();
-        wellImage.sprite = MediTerraniaRuntimeUi.SolidSprite;
+        wellImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
         wellImage.type = Image.Type.Sliced;
-        wellImage.color = new Color(0.02f, 0.13f, 0.17f, 0.04f);
+        wellImage.color = new Color(0.09f, 0.34f, 0.45f, 0.02f);
         wellImage.raycastTarget = true;
 
         RectTransform track = FindNamed<RectTransform>(temporaryRoot, "Anchor Track");
@@ -183,16 +183,26 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         anchor.SetParent(wellRect, false);
         depthText.rectTransform.SetParent(wellRect, false);
 
-        track.anchoredPosition = new Vector2(-64f, -40f);
-        track.sizeDelta = new Vector2(5f, 152f);
-        anchor.anchoredPosition = new Vector2(-64f, 36f);
+        track.anchoredPosition = new Vector2(-54f, -18f);
+        track.sizeDelta = new Vector2(16f, 128f);
+        Image trackImage = track.GetComponent<Image>();
+        if (trackImage != null)
+        {
+            trackImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+            trackImage.type = Image.Type.Sliced;
+            trackImage.color = new Color(0.035f, 0.18f, 0.22f, 0.82f);
+        }
+
+        Image trackFill = CreateAnchorTrackFill(track);
+        anchor.anchoredPosition = new Vector2(-54f, 46f);
         anchor.sizeDelta = new Vector2(86f, 86f);
         depthText.color = Color.white;
         depthText.rectTransform.pivot = new Vector2(0f, 0.5f);
-        depthText.rectTransform.anchoredPosition = new Vector2(16f, 36f);
+        depthText.rectTransform.anchoredPosition = new Vector2(26f, 46f);
         depthText.rectTransform.sizeDelta = new Vector2(110f, 34f);
 
         anchorDrag.track = track;
+        anchorDrag.trackFill = trackFill;
         anchorDrag.depthText = depthText;
         anchorDrag.darknessOverlay = depthShade;
         anchorDrag.controlledCamera = Camera.main;
@@ -213,15 +223,38 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         laneRect.anchorMin = new Vector2(0.5f, 0.5f);
         laneRect.anchorMax = new Vector2(0.5f, 0.5f);
         laneRect.pivot = new Vector2(0.5f, 0.5f);
-        laneRect.anchoredPosition = new Vector2(-64f, -40f);
-        laneRect.sizeDelta = new Vector2(92f, 184f);
+        laneRect.anchoredPosition = new Vector2(-54f, -18f);
+        laneRect.sizeDelta = new Vector2(104f, 184f);
 
         Image laneImage = laneObject.GetComponent<Image>();
-        laneImage.sprite = MediTerraniaRuntimeUi.SolidSprite;
+        laneImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
         laneImage.type = Image.Type.Sliced;
-        laneImage.color = new Color(0.015f, 0.1f, 0.14f, 0.74f);
+        laneImage.color = new Color(0.06f, 0.23f, 0.3f, 0.34f);
         laneImage.raycastTarget = false;
         return laneRect;
+    }
+
+    private static Image CreateAnchorTrackFill(RectTransform track)
+    {
+        Transform existing = track.Find("Anchor Track Fill");
+        GameObject fillObject = existing != null ? existing.gameObject : new GameObject("Anchor Track Fill", typeof(RectTransform), typeof(Image));
+        fillObject.transform.SetParent(track, false);
+
+        RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = Vector2.one;
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+
+        Image fillImage = fillObject.GetComponent<Image>();
+        fillImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        fillImage.type = Image.Type.Filled;
+        fillImage.fillMethod = Image.FillMethod.Vertical;
+        fillImage.fillOrigin = (int)Image.OriginVertical.Top;
+        fillImage.fillAmount = 0f;
+        fillImage.color = new Color(0.5f, 0.28f, 0.12f, 0.95f);
+        fillImage.raycastTarget = false;
+        return fillImage;
     }
 
     private static void ConfigureAnchorDragArea(GameObject dragArea, AnchorDrag anchorDrag)
@@ -258,7 +291,7 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         Image panelImage = panel.GetComponent<Image>();
         if (panelImage != null)
         {
-            panelImage.sprite = MediTerraniaRuntimeUi.SolidSprite;
+            panelImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
             panelImage.type = Image.Type.Sliced;
             panelImage.color = MediTerraniaRuntimeUi.PanelColor;
         }
@@ -276,19 +309,65 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         if (temperatureText != null)
         {
             temperatureText.color = MediTerraniaRuntimeUi.TextColor;
+            temperatureText.fontSize = 30f;
+            temperatureText.fontStyle = FontStyles.Bold;
+            temperatureText.rectTransform.anchoredPosition = new Vector2(64f, -72f);
         }
+
+        EnsureTemperatureLabel(panel);
+        PositionTemperatureElement(panel.gameObject, "Thermometer Image", new Vector2(-76f, -15f), new Vector2(62f, 150f));
+        PositionTemperatureElement(panel.gameObject, "Thermometer Fill", new Vector2(-76f, -15f), new Vector2(62f, 150f));
 
         RectTransform upButton = FindNamed<RectTransform>(panel.gameObject, "UP button");
         RectTransform downButton = FindNamed<RectTransform>(panel.gameObject, "DOWN button");
         if (upButton != null)
         {
-            upButton.anchoredPosition = new Vector2(70f, 45f);
+            upButton.anchoredPosition = new Vector2(64f, 28f);
+            upButton.sizeDelta = new Vector2(54f, 46f);
         }
 
         if (downButton != null)
         {
-            downButton.anchoredPosition = new Vector2(70f, -45f);
+            downButton.anchoredPosition = new Vector2(64f, -22f);
+            downButton.sizeDelta = new Vector2(54f, 46f);
         }
+    }
+
+    private static void EnsureTemperatureLabel(RectTransform panel)
+    {
+        TMP_Text label = FindNamed<TMP_Text>(panel.gameObject, "Temperature Label");
+        if (label == null)
+        {
+            GameObject labelObject = new("Temperature Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelObject.transform.SetParent(panel, false);
+            label = labelObject.GetComponent<TMP_Text>();
+        }
+
+        label.text = "Temperature";
+        label.fontSize = 15f;
+        label.fontStyle = FontStyles.Bold;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = MediTerraniaRuntimeUi.MutedTextColor;
+        label.raycastTarget = false;
+
+        RectTransform rectTransform = label.rectTransform;
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = new Vector2(0f, 76f);
+        rectTransform.sizeDelta = new Vector2(250f, 22f);
+    }
+
+    private static void PositionTemperatureElement(GameObject panel, string objectName, Vector2 anchoredPosition, Vector2 sizeDelta)
+    {
+        RectTransform rectTransform = FindNamed<RectTransform>(panel, objectName);
+        if (rectTransform == null)
+        {
+            return;
+        }
+
+        rectTransform.anchoredPosition = anchoredPosition;
+        rectTransform.sizeDelta = sizeDelta;
     }
 
     private static void WireButton(GameObject root, string buttonName, UnityEngine.Events.UnityAction action)

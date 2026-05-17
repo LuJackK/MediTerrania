@@ -19,12 +19,20 @@ public sealed class HabitatRopeController : MonoBehaviour
 {
     [SerializeField] private GameObject initialHabitat;
     [SerializeField] private Material ropeMaterial;
+    [SerializeField] private List<Material> habitatSurfaceMaterials = new();
     [SerializeField] private List<GameObject> habitatPrefabs = new();
     [SerializeField] private bool createRuntimeUi = true;
     [SerializeField] private float habitatBottomClearance = 0.08f;
 
     private const string ControllerObjectName = "Habitat Rope Controller";
     private const string EditorRopeMaterialAssetPath = "Assets/Materials/Rope001_1K-PNG/Rope.mat";
+
+    private static readonly HabitatMaterialDefinition[] HabitatMaterialDefinitions =
+    {
+        new("Sandstone", "Assets/Materials/textures 3/Sandstone.mat", new Color(0.72f, 0.55f, 0.35f, 1f)),
+        new("Marble", "Assets/Materials/textures/Marble.mat", new Color(0.86f, 0.88f, 0.84f, 1f)),
+        new("Metal", "Assets/Materials/textures 2/Metal.mat", new Color(0.46f, 0.56f, 0.62f, 1f))
+    };
 
     private static readonly string[] EditorHabitatAssetPaths =
     {
@@ -34,6 +42,7 @@ public sealed class HabitatRopeController : MonoBehaviour
     };
 
     private readonly List<HabitatEntry> habitats = new();
+    private readonly List<HabitatMaterialOption> habitatMaterialOptions = new();
     private readonly List<GameObject> currentRopes = new();
 
     private Transform spawnParent;
@@ -44,10 +53,16 @@ public sealed class HabitatRopeController : MonoBehaviour
     private int selectedHabitatIndex;
     private int visibleRopeCount;
     private RectTransform runtimePanel;
-    private readonly List<Button> habitatButtons = new();
+    private Button previousHabitatButton;
+    private Button nextHabitatButton;
+    private TMP_Text habitatNameText;
+    private Button habitatMaterialButton;
+    private Image habitatMaterialPreview;
+    private TMP_Text habitatMaterialNameText;
     private Button addRopeButton;
     private Button resetRopeButton;
     private TMP_Text ropeCountText;
+    private int selectedHabitatMaterialIndex;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedCallback()
@@ -87,6 +102,8 @@ public sealed class HabitatRopeController : MonoBehaviour
         DisableUnsupportedEventSystemModules();
         CaptureSpawnTransform();
         LoadDefaultRopeMaterial();
+        LoadDefaultHabitatMaterials();
+        BuildHabitatMaterialOptions();
         BuildHabitatList();
 
         if (habitats.Count == 0)
@@ -157,6 +174,7 @@ public sealed class HabitatRopeController : MonoBehaviour
         PlaceHabitatOnSeafloor(currentHabitat);
 
         CollectRopes(currentHabitat.transform, currentRopes);
+        ApplySelectedHabitatMaterial();
         ApplyRopeMaterial(currentRopes);
         ResetRopes();
     }
@@ -264,6 +282,63 @@ public sealed class HabitatRopeController : MonoBehaviour
 #if UNITY_EDITOR
         ropeMaterial = AssetDatabase.LoadAssetAtPath<Material>(EditorRopeMaterialAssetPath);
 #endif
+    }
+
+    private void LoadDefaultHabitatMaterials()
+    {
+        if (habitatSurfaceMaterials.Count > 0)
+        {
+            return;
+        }
+
+#if UNITY_EDITOR
+        for (int i = 0; i < HabitatMaterialDefinitions.Length; i++)
+        {
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(HabitatMaterialDefinitions[i].AssetPath);
+            if (material != null)
+            {
+                habitatSurfaceMaterials.Add(material);
+            }
+        }
+#endif
+    }
+
+    private void BuildHabitatMaterialOptions()
+    {
+        habitatMaterialOptions.Clear();
+
+        for (int i = 0; i < HabitatMaterialDefinitions.Length; i++)
+        {
+            Material material = FindConfiguredHabitatMaterial(HabitatMaterialDefinitions[i].DisplayName);
+            if (material == null)
+            {
+                continue;
+            }
+
+            habitatMaterialOptions.Add(new HabitatMaterialOption(
+                HabitatMaterialDefinitions[i].DisplayName,
+                material,
+                HabitatMaterialDefinitions[i].PreviewColor));
+        }
+
+        if (selectedHabitatMaterialIndex >= habitatMaterialOptions.Count)
+        {
+            selectedHabitatMaterialIndex = 0;
+        }
+    }
+
+    private Material FindConfiguredHabitatMaterial(string displayName)
+    {
+        for (int i = 0; i < habitatSurfaceMaterials.Count; i++)
+        {
+            Material material = habitatSurfaceMaterials[i];
+            if (material != null && string.Equals(material.name, displayName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return material;
+            }
+        }
+
+        return null;
     }
 
     private void AddHabitatPrefab(GameObject habitat)
@@ -379,6 +454,61 @@ public sealed class HabitatRopeController : MonoBehaviour
         }
     }
 
+    private void ApplySelectedHabitatMaterial()
+    {
+        if (currentHabitat == null || habitatMaterialOptions.Count == 0)
+        {
+            return;
+        }
+
+        if (selectedHabitatMaterialIndex < 0 || selectedHabitatMaterialIndex >= habitatMaterialOptions.Count)
+        {
+            selectedHabitatMaterialIndex = 0;
+        }
+
+        Material selectedMaterial = habitatMaterialOptions[selectedHabitatMaterialIndex].Material;
+        Renderer[] renderers = currentHabitat.GetComponentsInChildren<Renderer>(true);
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null || IsInsideRope(renderer.transform, currentHabitat.transform))
+            {
+                continue;
+            }
+
+            Material[] materials = renderer.sharedMaterials;
+            if (materials == null || materials.Length == 0)
+            {
+                renderer.sharedMaterial = selectedMaterial;
+                continue;
+            }
+
+            for (int j = 0; j < materials.Length; j++)
+            {
+                materials[j] = selectedMaterial;
+            }
+
+            renderer.sharedMaterials = materials;
+        }
+    }
+
+    private static bool IsInsideRope(Transform candidate, Transform root)
+    {
+        Transform current = candidate;
+        while (current != null && current != root)
+        {
+            if (IsRopeName(current.name))
+            {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        return false;
+    }
+
     private static bool IsRopeName(string objectName)
     {
         string normalized = RemoveDiacritics(objectName).ToLowerInvariant();
@@ -434,18 +564,16 @@ public sealed class HabitatRopeController : MonoBehaviour
         }
 
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
-        int visibleHabitatCount = Mathf.Min(3, habitats.Count);
-        float panelHeight = visibleHabitatCount * 38f + 44f;
-        GameObject panelObject = new("Habitat Controls", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-        panelObject.transform.SetParent(MediTerraniaRuntimeUi.EnsureLeftColumn(canvas), false);
-        runtimePanel = panelObject.GetComponent<RectTransform>();
-        MediTerraniaRuntimeUi.AddLayoutElement(panelObject, panelHeight, preferredWidth: 300f);
+        runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
+            MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
+            "Habitat Controls",
+            new Vector2(286f, 248f));
 
         VerticalLayoutGroup layout = runtimePanel.GetComponent<VerticalLayoutGroup>();
         if (layout != null)
         {
-            layout.spacing = 6f;
-            layout.padding = new RectOffset(0, 0, 0, 0);
+            layout.spacing = 7f;
+            layout.padding = new RectOffset(12, 12, 10, 10);
             layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = true;
             layout.childControlHeight = false;
@@ -453,28 +581,239 @@ public sealed class HabitatRopeController : MonoBehaviour
             layout.childForceExpandHeight = false;
         }
 
-        habitatButtons.Clear();
-
-        for (int i = 0; i < visibleHabitatCount; i++)
-        {
-            int habitatIndex = i;
-            Button habitatButton = MediTerraniaRuntimeUi.CreateButton(
-                runtimePanel,
-                $"Habitat {habitatIndex + 1}",
-                $"Habitat {habitatIndex + 1}",
-                () => SelectHabitat(habitatIndex));
-            habitatButtons.Add(habitatButton);
-        }
-
-        addRopeButton = MediTerraniaRuntimeUi.CreateButton(runtimePanel, "Add Rope", "Add rope", AddNextRope);
+        MediTerraniaRuntimeUi.CreateTitle(runtimePanel, "Habitat");
+        CreateHabitatSwitcher(runtimePanel);
+        CreateHabitatMaterialButton(runtimePanel);
+        addRopeButton = CreateAddRopeButton(runtimePanel);
     }
 
-    private void RefreshHabitatButtons()
+    private void CreateHabitatSwitcher(RectTransform parent)
     {
-        for (int i = 0; i < habitatButtons.Count; i++)
+        GameObject switcherObject = new("Habitat Switcher", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+        switcherObject.transform.SetParent(parent, false);
+        MediTerraniaRuntimeUi.AddLayoutElement(switcherObject, 40f);
+
+        Image switcherImage = switcherObject.GetComponent<Image>();
+        switcherImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        switcherImage.type = Image.Type.Sliced;
+        switcherImage.color = new Color(0.1f, 0.36f, 0.48f, 0.36f);
+
+        HorizontalLayoutGroup switcherLayout = switcherObject.GetComponent<HorizontalLayoutGroup>();
+        switcherLayout.padding = new RectOffset(5, 5, 4, 4);
+        switcherLayout.spacing = 6f;
+        switcherLayout.childAlignment = TextAnchor.MiddleCenter;
+        switcherLayout.childControlWidth = true;
+        switcherLayout.childControlHeight = true;
+        switcherLayout.childForceExpandWidth = false;
+        switcherLayout.childForceExpandHeight = true;
+
+        previousHabitatButton = MediTerraniaRuntimeUi.CreateButton(switcherObject.transform, "Previous Habitat", "<", SelectPreviousHabitat);
+        ConfigureSwitcherArrow(previousHabitatButton);
+
+        GameObject labelObject = new("Selected Habitat Label", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
+        labelObject.transform.SetParent(switcherObject.transform, false);
+        habitatNameText = labelObject.GetComponent<TMP_Text>();
+        habitatNameText.text = habitats[selectedHabitatIndex].DisplayName;
+        habitatNameText.fontSize = 14f;
+        habitatNameText.fontStyle = FontStyles.Bold;
+        habitatNameText.alignment = TextAlignmentOptions.Center;
+        habitatNameText.color = MediTerraniaRuntimeUi.TextColor;
+        habitatNameText.textWrappingMode = TextWrappingModes.NoWrap;
+        habitatNameText.overflowMode = TextOverflowModes.Ellipsis;
+        habitatNameText.raycastTarget = false;
+
+        LayoutElement labelLayout = labelObject.GetComponent<LayoutElement>();
+        labelLayout.preferredHeight = 34f;
+        labelLayout.flexibleWidth = 1f;
+
+        nextHabitatButton = MediTerraniaRuntimeUi.CreateButton(switcherObject.transform, "Next Habitat", ">", SelectNextHabitat);
+        ConfigureSwitcherArrow(nextHabitatButton);
+    }
+
+    private void CreateHabitatMaterialButton(RectTransform parent)
+    {
+        if (habitatMaterialOptions.Count == 0)
         {
-            MediTerraniaRuntimeUi.SetButtonSelected(habitatButtons[i], i == selectedHabitatIndex);
+            return;
         }
+
+        GameObject buttonObject = new("Habitat Material", typeof(RectTransform), typeof(Image), typeof(Button), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+        buttonObject.transform.SetParent(parent, false);
+        MediTerraniaRuntimeUi.AddLayoutElement(buttonObject, 46f);
+
+        Image buttonImage = buttonObject.GetComponent<Image>();
+        buttonImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        buttonImage.type = Image.Type.Sliced;
+        buttonImage.color = MediTerraniaRuntimeUi.ButtonColor;
+
+        HorizontalLayoutGroup layout = buttonObject.GetComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(8, 10, 6, 6);
+        layout.spacing = 9f;
+        layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+
+        GameObject previewObject = new("Material Preview", typeof(RectTransform), typeof(Image), typeof(LayoutElement), typeof(Outline));
+        previewObject.transform.SetParent(buttonObject.transform, false);
+        habitatMaterialPreview = previewObject.GetComponent<Image>();
+        habitatMaterialPreview.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        habitatMaterialPreview.type = Image.Type.Sliced;
+        habitatMaterialPreview.raycastTarget = false;
+
+        Outline previewOutline = previewObject.GetComponent<Outline>();
+        previewOutline.effectColor = new Color(1f, 1f, 1f, 0.3f);
+        previewOutline.effectDistance = new Vector2(1f, -1f);
+
+        LayoutElement previewLayout = previewObject.GetComponent<LayoutElement>();
+        previewLayout.preferredWidth = 30f;
+        previewLayout.preferredHeight = 30f;
+        previewLayout.minWidth = 30f;
+        previewLayout.minHeight = 30f;
+
+        GameObject labelObject = new("Material Name", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
+        labelObject.transform.SetParent(buttonObject.transform, false);
+        habitatMaterialNameText = labelObject.GetComponent<TMP_Text>();
+        habitatMaterialNameText.fontSize = 14f;
+        habitatMaterialNameText.fontStyle = FontStyles.Bold;
+        habitatMaterialNameText.alignment = TextAlignmentOptions.MidlineLeft;
+        habitatMaterialNameText.color = MediTerraniaRuntimeUi.TextColor;
+        habitatMaterialNameText.textWrappingMode = TextWrappingModes.NoWrap;
+        habitatMaterialNameText.overflowMode = TextOverflowModes.Ellipsis;
+        habitatMaterialNameText.raycastTarget = false;
+
+        LayoutElement labelLayout = labelObject.GetComponent<LayoutElement>();
+        labelLayout.preferredHeight = 30f;
+        labelLayout.flexibleWidth = 1f;
+
+        habitatMaterialButton = buttonObject.GetComponent<Button>();
+        habitatMaterialButton.targetGraphic = buttonImage;
+        habitatMaterialButton.colors = CreateRopeButtonColors(MediTerraniaRuntimeUi.ButtonColor);
+        habitatMaterialButton.onClick.AddListener(SelectNextHabitatMaterial);
+    }
+
+    private static void ConfigureSwitcherArrow(Button button)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        LayoutElement layoutElement = button.GetComponent<LayoutElement>();
+        if (layoutElement != null)
+        {
+            layoutElement.preferredWidth = 34f;
+            layoutElement.minWidth = 34f;
+            layoutElement.preferredHeight = 32f;
+            layoutElement.minHeight = 32f;
+            layoutElement.flexibleWidth = 0f;
+        }
+    }
+
+    private Button CreateAddRopeButton(RectTransform parent)
+    {
+        GameObject controlObject = new("Add Rope Control", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
+        controlObject.transform.SetParent(parent, false);
+        MediTerraniaRuntimeUi.AddLayoutElement(controlObject, 82f);
+
+        VerticalLayoutGroup layout = controlObject.GetComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(0, 0, 8, 0);
+        layout.spacing = 2f;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = false;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+
+        GameObject squareObject = new("Add Rope", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+        squareObject.transform.SetParent(controlObject.transform, false);
+
+        Image squareImage = squareObject.GetComponent<Image>();
+        squareImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        squareImage.type = Image.Type.Sliced;
+        squareImage.color = MediTerraniaRuntimeUi.ButtonColor;
+        squareImage.raycastTarget = true;
+
+        LayoutElement squareLayout = squareObject.GetComponent<LayoutElement>();
+        squareLayout.preferredWidth = 52f;
+        squareLayout.preferredHeight = 52f;
+        squareLayout.minWidth = 52f;
+        squareLayout.minHeight = 52f;
+
+        GameObject labelObject = new("Add Rope Label", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
+        labelObject.transform.SetParent(controlObject.transform, false);
+
+        TMP_Text label = labelObject.GetComponent<TMP_Text>();
+        label.text = "Add rope";
+        label.fontSize = 12f;
+        label.fontStyle = FontStyles.Bold;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = MediTerraniaRuntimeUi.TextColor;
+        label.raycastTarget = false;
+
+        LayoutElement labelLayout = labelObject.GetComponent<LayoutElement>();
+        labelLayout.preferredWidth = 120f;
+        labelLayout.preferredHeight = 20f;
+
+        Button button = squareObject.GetComponent<Button>();
+        button.targetGraphic = squareImage;
+        button.colors = CreateRopeButtonColors(MediTerraniaRuntimeUi.ButtonColor);
+        button.onClick.AddListener(AddNextRope);
+        return button;
+    }
+
+    private static ColorBlock CreateRopeButtonColors(Color baseColor)
+    {
+        return new ColorBlock
+        {
+            normalColor = baseColor,
+            highlightedColor = MediTerraniaRuntimeUi.ButtonHoverColor,
+            pressedColor = MediTerraniaRuntimeUi.AccentColor * 0.85f,
+            selectedColor = baseColor,
+            disabledColor = new Color(0.05f, 0.12f, 0.15f, 0.45f),
+            colorMultiplier = 1f,
+            fadeDuration = 0.08f
+        };
+    }
+
+    private void SelectPreviousHabitat()
+    {
+        int nextIndex = selectedHabitatIndex - 1;
+        if (nextIndex < 0)
+        {
+            nextIndex = habitats.Count - 1;
+        }
+
+        SelectHabitat(nextIndex);
+    }
+
+    private void SelectNextHabitat()
+    {
+        int nextIndex = selectedHabitatIndex + 1;
+        if (nextIndex >= habitats.Count)
+        {
+            nextIndex = 0;
+        }
+
+        SelectHabitat(nextIndex);
+    }
+
+    private void SelectNextHabitatMaterial()
+    {
+        if (habitatMaterialOptions.Count == 0)
+        {
+            return;
+        }
+
+        selectedHabitatMaterialIndex++;
+        if (selectedHabitatMaterialIndex >= habitatMaterialOptions.Count)
+        {
+            selectedHabitatMaterialIndex = 0;
+        }
+
+        ApplySelectedHabitatMaterial();
+        UpdateUiState();
     }
 
     private static void DisableUnsupportedEventSystemModules()
@@ -501,7 +840,37 @@ public sealed class HabitatRopeController : MonoBehaviour
 
     private void UpdateUiState()
     {
-        RefreshHabitatButtons();
+        if (habitatNameText != null && selectedHabitatIndex >= 0 && selectedHabitatIndex < habitats.Count)
+        {
+            habitatNameText.text = habitats[selectedHabitatIndex].DisplayName;
+        }
+
+        bool hasMultipleHabitats = habitats.Count > 1;
+        if (previousHabitatButton != null)
+        {
+            previousHabitatButton.interactable = hasMultipleHabitats;
+        }
+
+        if (nextHabitatButton != null)
+        {
+            nextHabitatButton.interactable = hasMultipleHabitats;
+        }
+
+        if (habitatMaterialButton != null)
+        {
+            habitatMaterialButton.interactable = habitatMaterialOptions.Count > 1;
+        }
+
+        if (habitatMaterialNameText != null && habitatMaterialOptions.Count > 0)
+        {
+            HabitatMaterialOption option = habitatMaterialOptions[selectedHabitatMaterialIndex];
+            habitatMaterialNameText.text = option.DisplayName;
+        }
+
+        if (habitatMaterialPreview != null && habitatMaterialOptions.Count > 0)
+        {
+            habitatMaterialPreview.color = habitatMaterialOptions[selectedHabitatMaterialIndex].PreviewColor;
+        }
 
         if (addRopeButton != null)
         {
@@ -529,5 +898,33 @@ public sealed class HabitatRopeController : MonoBehaviour
 
         public string DisplayName { get; }
         public GameObject Source { get; }
+    }
+
+    private readonly struct HabitatMaterialDefinition
+    {
+        public HabitatMaterialDefinition(string displayName, string assetPath, Color previewColor)
+        {
+            DisplayName = displayName;
+            AssetPath = assetPath;
+            PreviewColor = previewColor;
+        }
+
+        public string DisplayName { get; }
+        public string AssetPath { get; }
+        public Color PreviewColor { get; }
+    }
+
+    private readonly struct HabitatMaterialOption
+    {
+        public HabitatMaterialOption(string displayName, Material material, Color previewColor)
+        {
+            DisplayName = displayName;
+            Material = material;
+            PreviewColor = previewColor;
+        }
+
+        public string DisplayName { get; }
+        public Material Material { get; }
+        public Color PreviewColor { get; }
     }
 }

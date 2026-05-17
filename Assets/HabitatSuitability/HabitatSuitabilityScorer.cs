@@ -3,9 +3,25 @@ using UnityEngine;
 
 public static class HabitatSuitabilityScorer
 {
+    public const float DefaultSedimentationReductionPerRope = 0.08f;
+    public const float MaxRopeSedimentationReduction = 0.75f;
+
     public static float ComputeSuitabilityScore(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)
     {
         return Mathf.Clamp01(ComputeSuitability(species, reefMetrics).finalScore);
+    }
+
+    public static float ComputeSuitabilityScore(
+        SpeciesSuitabilityConfig species,
+        ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope = DefaultSedimentationReductionPerRope)
+    {
+        return Mathf.Clamp01(ComputeSuitability(
+            species,
+            reefMetrics,
+            ropeCount,
+            sedimentationReductionPerRope).finalScore);
     }
 
     public static SuitabilityResult ComputeSuitability(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)
@@ -59,6 +75,55 @@ public static class HabitatSuitabilityScorer
             finalScore = finalScore,
             suitabilityClass = ClassifySuitability(finalScore)
         };
+    }
+
+    public static SuitabilityResult ComputeSuitability(
+        SpeciesSuitabilityConfig species,
+        ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope = DefaultSedimentationReductionPerRope)
+    {
+        ReefMetrics sedimentAdjustedMetrics = ApplyRopeSedimentationReduction(
+            reefMetrics,
+            ropeCount,
+            sedimentationReductionPerRope);
+        return ComputeSuitability(species, sedimentAdjustedMetrics);
+    }
+
+    public static float ComputeRopeSedimentationReduction(
+        int ropeCount,
+        float sedimentationReductionPerRope = DefaultSedimentationReductionPerRope)
+    {
+        if (ropeCount <= 0 || sedimentationReductionPerRope <= 0f)
+        {
+            return 0f;
+        }
+
+        float rawReduction = ropeCount * sedimentationReductionPerRope;
+        return Mathf.Clamp(rawReduction, 0f, MaxRopeSedimentationReduction);
+    }
+
+    public static ReefMetrics ApplyRopeSedimentationReduction(
+        ReefMetrics reefMetrics,
+        int ropeCount,
+        float sedimentationReductionPerRope = DefaultSedimentationReductionPerRope)
+    {
+        float sedimentReduction = ComputeRopeSedimentationReduction(ropeCount, sedimentationReductionPerRope);
+        if (reefMetrics == null || sedimentReduction <= Mathf.Epsilon)
+        {
+            return reefMetrics;
+        }
+
+        float remainingSedimentation = 1f - sedimentReduction;
+        ReefMetrics adjustedMetrics = CopyReefMetrics(reefMetrics);
+
+        adjustedMetrics.sedimentCloggingRisk = Mathf.Clamp01(reefMetrics.sedimentCloggingRisk * remainingSedimentation);
+        adjustedMetrics.sandySubstrate = Mathf.Clamp01(reefMetrics.sandySubstrate * remainingSedimentation);
+        adjustedMetrics.cleanCavities = Mathf.Clamp01(1f - ((1f - reefMetrics.cleanCavities) * remainingSedimentation));
+        adjustedMetrics.substrateSuitability = Mathf.Clamp01(
+            reefMetrics.substrateSuitability + ((1f - reefMetrics.substrateSuitability) * sedimentReduction));
+
+        return adjustedMetrics;
     }
 
     public static float WeightedSum(List<FeatureWeight> coefficients, ReefMetrics reefMetrics)
@@ -201,6 +266,62 @@ public static class HabitatSuitabilityScorer
         }
 
         return reefMetrics.TryGetMetricValue(featureName, out metricValue);
+    }
+
+    private static ReefMetrics CopyReefMetrics(ReefMetrics source)
+    {
+        ReefMetrics copy = new ReefMetrics
+        {
+            depth = source.depth,
+            depthSuitability = source.depthSuitability,
+            temperature = source.temperature,
+            temperatureSuitability = source.temperatureSuitability,
+            salinity = source.salinity,
+            salinitySuitability = source.salinitySuitability,
+            chlorophyll = source.chlorophyll,
+            chlorophyllSuitability = source.chlorophyllSuitability,
+            distanceToCoast = source.distanceToCoast,
+            coastProximity = source.coastProximity,
+            slope = source.slope,
+            slopeSuitability = source.slopeSuitability,
+            rockySubstrate = source.rockySubstrate,
+            sandySubstrate = source.sandySubstrate,
+            substrateSuitability = source.substrateSuitability,
+            seagrassPresence = source.seagrassPresence,
+            reefAssociation = source.reefAssociation,
+            terrainComplexity = source.terrainComplexity,
+            smallHoleDensity = source.smallHoleDensity,
+            mediumHoleDensity = source.mediumHoleDensity,
+            largeCaveAvailability = source.largeCaveAvailability,
+            shadowAvailability = source.shadowAvailability,
+            lightExposure = source.lightExposure,
+            mixedLightShadow = source.mixedLightShadow,
+            cleanCavities = source.cleanCavities,
+            sedimentCloggingRisk = source.sedimentCloggingRisk,
+            surfaceRoughness = source.surfaceRoughness,
+            openSwimVolume = source.openSwimVolume,
+            verticalRelief = source.verticalRelief,
+            reefEdgeComplexity = source.reefEdgeComplexity,
+            shelterAvailability = source.shelterAvailability
+        };
+
+        if (source.additionalMetrics != null)
+        {
+            copy.additionalMetrics = new List<MetricValue>(source.additionalMetrics.Count);
+            for (int i = 0; i < source.additionalMetrics.Count; i++)
+            {
+                MetricValue sourceMetric = source.additionalMetrics[i];
+                copy.additionalMetrics.Add(sourceMetric == null
+                    ? null
+                    : new MetricValue
+                    {
+                        feature = sourceMetric.feature,
+                        value = sourceMetric.value
+                    });
+            }
+        }
+
+        return copy;
     }
 
     private static SuitabilityResult CreateEmptyResult(SpeciesSuitabilityConfig species)

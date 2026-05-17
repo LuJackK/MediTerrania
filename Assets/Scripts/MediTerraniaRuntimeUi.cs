@@ -14,14 +14,15 @@ public static class MediTerraniaRuntimeUi
     private const string LeftColumnName = "Left Control Stack";
     private const string RightColumnName = "Right Control Stack";
     private static Sprite solidSprite;
+    private static Sprite roundedSprite;
 
-    public static readonly Color PanelColor = new(0.025f, 0.11f, 0.16f, 0.82f);
-    public static readonly Color PanelStrokeColor = new(0.25f, 0.77f, 0.86f, 0.35f);
+    public static readonly Color PanelColor = new(0.12f, 0.42f, 0.57f, 0.48f);
+    public static readonly Color PanelStrokeColor = new(0.58f, 0.9f, 1f, 0.26f);
     public static readonly Color TextColor = new(0.88f, 0.98f, 1f, 1f);
-    public static readonly Color MutedTextColor = new(0.62f, 0.82f, 0.88f, 1f);
-    public static readonly Color ButtonColor = new(0.06f, 0.27f, 0.34f, 0.96f);
-    public static readonly Color ButtonHoverColor = new(0.08f, 0.36f, 0.45f, 1f);
-    public static readonly Color AccentColor = new(0.18f, 0.75f, 0.78f, 1f);
+    public static readonly Color MutedTextColor = new(0.74f, 0.92f, 0.98f, 1f);
+    public static readonly Color ButtonColor = new(0.14f, 0.48f, 0.64f, 0.68f);
+    public static readonly Color ButtonHoverColor = new(0.24f, 0.66f, 0.82f, 0.82f);
+    public static readonly Color AccentColor = new(0.39f, 0.86f, 0.92f, 1f);
     public static readonly Color WarmAccentColor = new(0.95f, 0.67f, 0.32f, 1f);
 
     public static Canvas EnsureCanvas()
@@ -122,7 +123,7 @@ public static class MediTerraniaRuntimeUi
         ConfigurePanelVisual(panel, image);
 
         VerticalLayoutGroup layout = panel.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(16, 16, 14, 14);
+        layout.padding = new RectOffset(14, 14, 12, 12);
         layout.spacing = 8f;
         layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
@@ -145,7 +146,7 @@ public static class MediTerraniaRuntimeUi
         ConfigurePanelVisual(panel, image);
 
         VerticalLayoutGroup layout = panel.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(16, 16, 14, 14);
+        layout.padding = new RectOffset(14, 14, 12, 12);
         layout.spacing = 8f;
         layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
@@ -179,7 +180,7 @@ public static class MediTerraniaRuntimeUi
         buttonObject.transform.SetParent(parent, false);
 
         Image image = buttonObject.GetComponent<Image>();
-        image.sprite = SolidSprite;
+        image.sprite = RoundedSprite;
         image.type = Image.Type.Sliced;
         image.color = ButtonColor;
 
@@ -323,6 +324,45 @@ public static class MediTerraniaRuntimeUi
         }
     }
 
+    public static Sprite RoundedSprite
+    {
+        get
+        {
+            if (roundedSprite != null)
+            {
+                return roundedSprite;
+            }
+
+            const int size = 64;
+            const float radius = 12f;
+            Texture2D texture = new(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "MediTerrania UI Rounded Pixel",
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float closestX = Mathf.Clamp(x, radius, size - radius - 1f);
+                    float closestY = Mathf.Clamp(y, radius, size - radius - 1f);
+                    float distance = Vector2.Distance(new Vector2(x, y), new Vector2(closestX, closestY));
+                    float alpha = Mathf.Clamp01(radius + 0.5f - distance);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+
+            Vector4 border = new(radius, radius, radius, radius);
+            roundedSprite = Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, border);
+            roundedSprite.name = "MediTerrania UI Rounded Sprite";
+            roundedSprite.hideFlags = HideFlags.HideAndDontSave;
+            return roundedSprite;
+        }
+    }
+
     private static TMP_Text CreateText(Transform parent, string name, string text, float fontSize, FontStyles fontStyle, Color color)
     {
         GameObject textObject = new(name, typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -396,7 +436,7 @@ public static class MediTerraniaRuntimeUi
 
     private static void ConfigurePanelVisual(GameObject panel, Image image)
     {
-        image.sprite = SolidSprite;
+        image.sprite = RoundedSprite;
         image.type = Image.Type.Sliced;
         image.color = PanelColor;
 
