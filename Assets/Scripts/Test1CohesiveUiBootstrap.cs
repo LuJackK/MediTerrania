@@ -58,6 +58,10 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     {
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
         depthShade = MediTerraniaRuntimeUi.EnsureDepthShade(canvas);
+
+        // create top-center score UI (hoverable dropdown)
+        CreateScoreDisplay(canvas);
+
         RectTransform rightColumn = MediTerraniaRuntimeUi.EnsureRightColumn(canvas);
 
         temperaturePanel = InstallTemperaturePanel(rightColumn, out createdTemperatureController);
@@ -85,6 +89,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             Destroy(createdTemperatureController.gameObject);
         }
+
+        // Score display is parented to canvas; let Unity clean it up with scene teardown.
     }
 
     private static RectTransform InstallTemperaturePanel(
@@ -155,6 +161,29 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
             new Vector2(320f, 272f));
         MediTerraniaRuntimeUi.CreateTitle(panel, "Anchor Depth");
 
+        // center and raise the panel title slightly
+        TMP_Text panelTitle = FindNamed<TMP_Text>(panel.gameObject, "Title");
+        if (panelTitle != null)
+        {
+            panelTitle.alignment = TextAlignmentOptions.Center;
+            RectTransform titleRect = panelTitle.rectTransform;
+            titleRect.anchorMin = new Vector2(0.5f, 1f);
+            titleRect.anchorMax = new Vector2(0.5f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0f, -6f);
+            titleRect.sizeDelta = new Vector2(260f, 24f);
+        }
+
+        // push well further down so the anchor UI sits below the title
+        VerticalLayoutGroup panelLayout = panel.GetComponent<VerticalLayoutGroup>();
+        if (panelLayout != null)
+        {
+            // increase top padding a bit to add vertical gap between title and well
+            RectOffset p = panelLayout.padding;
+            p.top += 10;
+            panelLayout.padding = p;
+        }
+
         GameObject wellObject = new("Anchor Depth Well", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
         wellObject.transform.SetParent(panel, false);
         MediTerraniaRuntimeUi.AddLayoutElement(wellObject, 214f);
@@ -183,7 +212,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         anchor.SetParent(wellRect, false);
         depthText.rectTransform.SetParent(wellRect, false);
 
-        track.anchoredPosition = new Vector2(-54f, -18f);
+        // lower the visual lane and track further so the anchor sits clearly below the title
+        track.anchoredPosition = new Vector2(-54f, -40f);
         track.sizeDelta = new Vector2(16f, 128f);
         Image trackImage = track.GetComponent<Image>();
         if (trackImage != null)
@@ -194,11 +224,14 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         }
 
         Image trackFill = CreateAnchorTrackFill(track);
-        anchor.anchoredPosition = new Vector2(-54f, 46f);
+
+        // move anchor and depth text slightly down relative to previous placement
+        anchor.anchoredPosition = new Vector2(-54f, 10f);
         anchor.sizeDelta = new Vector2(86f, 86f);
+
         depthText.color = Color.white;
         depthText.rectTransform.pivot = new Vector2(0f, 0.5f);
-        depthText.rectTransform.anchoredPosition = new Vector2(26f, 46f);
+        depthText.rectTransform.anchoredPosition = new Vector2(26f, 10f);
         depthText.rectTransform.sizeDelta = new Vector2(110f, 34f);
 
         anchorDrag.track = track;
@@ -223,8 +256,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         laneRect.anchorMin = new Vector2(0.5f, 0.5f);
         laneRect.anchorMax = new Vector2(0.5f, 0.5f);
         laneRect.pivot = new Vector2(0.5f, 0.5f);
-        laneRect.anchoredPosition = new Vector2(-54f, -18f);
-        laneRect.sizeDelta = new Vector2(104f, 184f);
+        laneRect.anchoredPosition = new Vector2(-54f, -40f);
+        laneRect.sizeDelta = new Vector2(104f, 204f);
 
         Image laneImage = laneObject.GetComponent<Image>();
         laneImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
@@ -472,5 +505,111 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             Destroy(temporaryRoot);
         }
+    }
+
+    // Creates a top-center "score" label which shows a dropdown of 4 placeholder fish scores on hover.
+    // Actual score population is left intentionally open for later implementation.
+    private static void CreateScoreDisplay(Canvas canvas)
+    {
+        if (canvas == null)
+        {
+            return;
+        }
+
+        Transform existing = canvas.transform.Find("Runtime Score Display");
+        if (existing != null)
+        {
+            return;
+        }
+
+        GameObject scoreRoot = new("Runtime Score Display", typeof(RectTransform), typeof(Image));
+        scoreRoot.transform.SetParent(canvas.transform, false);
+        scoreRoot.transform.SetAsLastSibling();
+
+        RectTransform rootRect = scoreRoot.GetComponent<RectTransform>();
+        rootRect.anchorMin = new Vector2(0.5f, 1f);
+        rootRect.anchorMax = new Vector2(0.5f, 1f);
+        rootRect.pivot = new Vector2(0.5f, 1f);
+        rootRect.anchoredPosition = new Vector2(0f, -8f);
+        rootRect.sizeDelta = new Vector2(300f, 36f);
+
+        Image bg = scoreRoot.GetComponent<Image>();
+        bg.sprite = MediTerraniaRuntimeUi.SolidSprite;
+        bg.color = new Color(0f, 0f, 0f, 0f); // transparent background; style can be changed later
+        bg.raycastTarget = true;
+
+        // Score label
+        GameObject scoreLabelObj = new("Score Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        scoreLabelObj.transform.SetParent(scoreRoot.transform, false);
+        RectTransform scoreLabelRect = scoreLabelObj.GetComponent<RectTransform>();
+        scoreLabelRect.anchorMin = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.pivot = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.anchoredPosition = Vector2.zero;
+        scoreLabelRect.sizeDelta = new Vector2(220f, 28f);
+
+        TMP_Text scoreLabel = scoreLabelObj.GetComponent<TMP_Text>();
+        scoreLabel.text = "Score: --";
+        scoreLabel.fontSize = 16f;
+        scoreLabel.fontStyle = FontStyles.Bold;
+        scoreLabel.alignment = TextAlignmentOptions.Center;
+        scoreLabel.color = MediTerraniaRuntimeUi.AccentColor;
+        scoreLabel.raycastTarget = true;
+
+        // Dropdown panel (hidden by default)
+        GameObject dropdown = new("Score Dropdown", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
+        dropdown.transform.SetParent(scoreRoot.transform, false);
+        RectTransform dropdownRect = dropdown.GetComponent<RectTransform>();
+        dropdownRect.anchorMin = new Vector2(0.5f, 1f);
+        dropdownRect.anchorMax = new Vector2(0.5f, 1f);
+        dropdownRect.pivot = new Vector2(0.5f, 0f);
+        dropdownRect.anchoredPosition = new Vector2(0f, -38f);
+        dropdownRect.sizeDelta = new Vector2(220f, 0f);
+
+        Image dropdownImage = dropdown.GetComponent<Image>();
+        dropdownImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        dropdownImage.type = Image.Type.Sliced;
+        dropdownImage.color = new Color(0.02f, 0.12f, 0.16f, 0.9f);
+        dropdownImage.raycastTarget = true;
+
+        VerticalLayoutGroup layout = dropdown.GetComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(8, 8, 8, 8);
+        layout.spacing = 4f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlHeight = false;
+        layout.childControlWidth = true;
+
+        // Four placeholder entries for fish scores
+        for (int i = 0; i < 4; i++)
+        {
+            GameObject entry = new($"FishScore {i+1}", typeof(RectTransform), typeof(TextMeshProUGUI));
+            entry.transform.SetParent(dropdown.transform, false);
+            TMP_Text entryText = entry.GetComponent<TMP_Text>();
+            entryText.text = $"Fish {i + 1}: --";
+            entryText.fontSize = 14f;
+            entryText.color = MediTerraniaRuntimeUi.TextColor;
+            entryText.alignment = TextAlignmentOptions.Left;
+            RectTransform eRect = entry.GetComponent<RectTransform>();
+            eRect.sizeDelta = new Vector2(200f, 20f);
+        }
+
+        dropdown.SetActive(false);
+
+        // Hover behavior: show dropdown on pointer enter, hide on exit
+        EventTrigger trigger = scoreRoot.GetComponent<EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = scoreRoot.AddComponent<EventTrigger>();
+        }
+
+        trigger.triggers.Clear();
+
+        EventTrigger.Entry enterEntry = new() { eventID = EventTriggerType.PointerEnter };
+        enterEntry.callback.AddListener(evt => dropdown.SetActive(true));
+        trigger.triggers.Add(enterEntry);
+
+        EventTrigger.Entry exitEntry = new() { eventID = EventTriggerType.PointerExit };
+        exitEntry.callback.AddListener(evt => dropdown.SetActive(false));
+        trigger.triggers.Add(exitEntry);
     }
 }

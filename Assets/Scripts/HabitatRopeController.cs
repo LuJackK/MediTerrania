@@ -567,7 +567,7 @@ public sealed class HabitatRopeController : MonoBehaviour
         runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
             MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
             "Habitat Controls",
-            new Vector2(286f, 248f));
+            new Vector2(286f, 450f)); // Increased height so material box fits inside
 
         VerticalLayoutGroup layout = runtimePanel.GetComponent<VerticalLayoutGroup>();
         if (layout != null)
