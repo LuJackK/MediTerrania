@@ -8,7 +8,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
 {
     [Header("Depth Settings")]
     public float minDepthMeters = 5f;
-    public float maxDepthMeters = 25f;
+    public float maxDepthMeters = 40f;
 
     [Header("UI")]
     public RectTransform track;
@@ -19,15 +19,15 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     [Header("Depth Environment")]
     public Camera controlledCamera;
     public Image darknessOverlay;
-    public float surfaceHiddenDepthMeters = 15f;
-    public float cameraDropAtHiddenSurface = 2f;
-    public float surfaceRiseAtMaxDepth = 28f;
+    public float surfaceHiddenDepthMeters = 40f;
+    public float cameraDropAtHiddenSurface = 4f;
+    public float surfaceRiseAtMaxDepth = 72f;
     public float surfaceRiseAcceleration = 1.7f;
-    public float depthEffectRange = 1.62f;
-    public float darknessRange = 1.44f;
-    public float surfaceRiseRange = 1.62f;
+    public float depthEffectRange = 1f;
+    public float darknessRange = 1f;
+    public float surfaceRiseRange = 1f;
     public Color shallowDarknessColor = new(0f, 0.05f, 0.09f, 0.03f);
-    public Color deepDarknessColor = new(0f, 0.025f, 0.07f, 0.34f);
+    public Color deepDarknessColor = new(0f, 0.012f, 0.045f, 0.62f);
 
     private RectTransform anchorRect;
     private readonly List<DepthShiftTarget> surfaceShiftTargets = new();

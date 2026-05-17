@@ -257,13 +257,13 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
 
         Image trackFill = CreateAnchorTrackFill(track);
 
-        // move anchor and depth text slightly down relative to previous placement
-        anchor.anchoredPosition = new Vector2(-54f, 10f);
+        float shallowAnchorY = track.anchoredPosition.y + track.sizeDelta.y * 0.5f;
+        anchor.anchoredPosition = new Vector2(-54f, shallowAnchorY);
         anchor.sizeDelta = new Vector2(86f, 86f);
 
         depthText.color = Color.white;
         depthText.rectTransform.pivot = new Vector2(0f, 0.5f);
-        depthText.rectTransform.anchoredPosition = new Vector2(26f, 10f);
+        depthText.rectTransform.anchoredPosition = new Vector2(26f, shallowAnchorY);
         depthText.rectTransform.sizeDelta = new Vector2(110f, 34f);
 
         anchorDrag.track = track;

@@ -26,6 +26,7 @@ public sealed class HabitatRopeController : MonoBehaviour
 
     private const string ControllerObjectName = "Habitat Rope Controller";
     private const string EditorRopeMaterialAssetPath = "Assets/Materials/Rope001_1K-PNG/Rope.mat";
+    private const string EditorAddRopeIconAssetPath = "Assets/2362530.png";
 
     private static readonly HabitatMaterialDefinition[] HabitatMaterialDefinitions =
     {
@@ -767,6 +768,23 @@ public sealed class HabitatRopeController : MonoBehaviour
         squareLayout.minWidth = 52f;
         squareLayout.minHeight = 52f;
 
+        GameObject iconObject = new("Add Rope Icon", typeof(RectTransform), typeof(Image));
+        iconObject.transform.SetParent(squareObject.transform, false);
+
+        RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+        iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRect.pivot = new Vector2(0.5f, 0.5f);
+        iconRect.anchoredPosition = Vector2.zero;
+        iconRect.sizeDelta = new Vector2(45f, 45f);
+
+        Image iconImage = iconObject.GetComponent<Image>();
+        iconImage.sprite = LoadAddRopeIconSprite();
+        iconImage.preserveAspect = true;
+        iconImage.raycastTarget = false;
+        iconImage.color = Color.white;
+        iconImage.enabled = iconImage.sprite != null;
+
         GameObject labelObject = new("Add Rope Label", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         labelObject.transform.SetParent(controlObject.transform, false);
 
@@ -787,6 +805,15 @@ public sealed class HabitatRopeController : MonoBehaviour
         button.colors = CreateRopeButtonColors(MediTerraniaRuntimeUi.ButtonColor);
         button.onClick.AddListener(AddNextRope);
         return button;
+    }
+
+    private static Sprite LoadAddRopeIconSprite()
+    {
+#if UNITY_EDITOR
+        return AssetDatabase.LoadAssetAtPath<Sprite>(EditorAddRopeIconAssetPath);
+#else
+        return null;
+#endif
     }
 
     private static ColorBlock CreateRopeButtonColors(Color baseColor)
