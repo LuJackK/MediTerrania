@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Fish1
+  - Fish2
+  - Fish3
+  - Fish4
   layers:
   - Default
   - TransparentFX
@@ -12,7 +16,7 @@ TagManager:
   - Water
   - UI
   - BoidRepelant
-  - 
+  - Fish
   - 
   - 
   - 
