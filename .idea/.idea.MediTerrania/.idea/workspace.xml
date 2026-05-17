@@ -6,14 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a1f7f52c-74cd-4339-b956-9e884a4d162e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid1.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid1.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid2.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid2.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid3.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid3.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid4.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/BoidStuff/ActualPrefabs/FishBoid4.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scenes/SwimTryOut.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/SwimTryOut.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/HideCanvasButton.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/HideCanvasButton.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Player/ForwardRaycast.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Player/ForwardRaycast.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/TagManager.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Test1.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Test1.unity" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,7 +18,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ccb8c0d153754c2e87d5456ba3bd6d35212200/15/7913f078/Object.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ccb8c0d153754c2e87d5456ba3bd6d35212200/a5/8eecd419/MeshRenderer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/ccb8c0d153754c2e87d5456ba3bd6d35212200/a5/8eecd419/MeshRenderer.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 6
@@ -118,7 +111,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1778963792468</updated>
-      <workItem from="1778963794919" duration="19189000" />
+      <workItem from="1778963794919" duration="22644000" />
     </task>
     <servers />
   </component>
