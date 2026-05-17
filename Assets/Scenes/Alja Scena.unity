@@ -166,7 +166,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
   prefab: {fileID: 3315227629224718504, guid: 02d5da11b6d3341a4a44dd2b42764fd1, type: 3}
   spawnRadius: 0
-  spawnCount: 20
+  spawnCount: 2
   colour: {r: 1, g: 1, b: 1, a: 1}
   showSpawnRegion: 1
 --- !u!114 &180862715

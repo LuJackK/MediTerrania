@@ -149,4 +149,5 @@ public class BoidSpawnManager : MonoBehaviour
         Gizmos.color = new Color(1f, 1f, 0f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
     }
+    
 }
