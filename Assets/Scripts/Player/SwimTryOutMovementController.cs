@@ -4,21 +4,21 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public class SwimTryOutMovementController : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 7f;
-    [SerializeField] private float sprintMultiplier = 1.7f;
-    [SerializeField] private float verticalSpeed = 5f;
-    [SerializeField] private float mouseSensitivity = 0.09f;
-    [SerializeField] private float gamepadLookSensitivity = 110f;
-    [SerializeField] private bool lockCursorOnStart = true;
-    [SerializeField] private bool unlockCursorWithEscape = true;
-    [SerializeField] private bool moveAlongLookDirection = true;
-    [SerializeField] private float controllerRadius = 0.45f;
-    [SerializeField] private float controllerHeight = 1.8f;
-    [SerializeField] private bool addHabitatMeshColliders = true;
-    [SerializeField] private bool constrainToWaterVolume = true;
-    [SerializeField] private float waterBoundaryPadding = 1.5f;
-    [SerializeField] private float floorPadding = 0.25f;
-    [SerializeField] private float surfacePadding = 0.4f;
+    [SerializeField] public float moveSpeed = 7f;
+    [SerializeField] public float sprintMultiplier = 1.7f;
+    [SerializeField] public float verticalSpeed = 5f;
+    [SerializeField] public float mouseSensitivity = 0.09f;
+    [SerializeField] public float gamepadLookSensitivity = 110f;
+    [SerializeField] public bool lockCursorOnStart = true;
+    [SerializeField] public bool unlockCursorWithEscape = true;
+    [SerializeField] public bool moveAlongLookDirection = true;
+    [SerializeField] public float controllerRadius = 0.45f;
+    [SerializeField] public float controllerHeight = 1.8f;
+    [SerializeField] public bool addHabitatMeshColliders = true;
+    [SerializeField] public bool constrainToWaterVolume = true;
+    [SerializeField] public float waterBoundaryPadding = 1.5f;
+    [SerializeField] public float floorPadding = 0.25f;
+    [SerializeField] public float surfacePadding = 0.4f;
 
     private float pitch;
     private float yaw;

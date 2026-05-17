@@ -6,12 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="a1f7f52c-74cd-4339-b956-9e884a4d162e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MediTerrania/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Models/Fish/Fish3/Fish4.fbx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Models/Fish/Fish3/Fish4.fbx.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Models/Fish/Fish4/Fish4.fbx.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Models/Fish/Fish4/Fish4.fbx.meta" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scenes/Alja Scena.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Alja Scena.unity" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Boids/Boid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Boids/Boid.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/SwimTryOut.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/SwimTryOut.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Boids/Settings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Boids/Settings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/SwimTryOutMovementController.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/SwimTryOutMovementController.cs.meta" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,7 +115,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1778963792468</updated>
-      <workItem from="1778963794919" duration="8794000" />
+      <workItem from="1778963794919" duration="12058000" />
     </task>
     <servers />
   </component>
