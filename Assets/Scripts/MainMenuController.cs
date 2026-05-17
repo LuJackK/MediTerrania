@@ -36,9 +36,9 @@ public class MainMenuController : MonoBehaviour
         Rect titleRect = new Rect(0f, centerY - 125f, Screen.width, titleHeight);
         Rect buttonRect = new Rect(centerX - buttonWidth * 0.5f, centerY + 20f, buttonWidth, buttonHeight);
 
-        GUI.Label(titleRect, "Medi<color=#37D7B2>Terra</color>na", titleStyle);
+        GUI.Label(titleRect, "Medi<color=#37D7B2>Terra</color>nia", titleStyle);
 
-        if (GUI.Button(buttonRect, "Play Game", buttonStyle))
+        if (GUI.Button(buttonRect, "Explore", buttonStyle))
         {
             SceneManager.LoadScene(gameSceneName);
         }
