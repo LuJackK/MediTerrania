@@ -2039,6 +2039,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2016469670}
   - component: {fileID: 2016469671}
+  - component: {fileID: 2016469672}
   m_Layer: 0
   m_Name: BoidMenager
   m_TagString: Untagged
@@ -2075,6 +2076,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidManager
   settings: {fileID: 11400000, guid: 33abfc93c2b8c4e7585ffd04add6e81e, type: 2}
   compute: {fileID: 7200000, guid: 387a6238e813b43a9be29024aaa95f50, type: 3}
+--- !u!114 &2016469672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2016469669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a2a2f4fadb94383a04450eadb80d657, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Test1BoidSuitabilitySpawnerBridge
+  boidSpawnManager: {fileID: 113879743}
+  applyCurrentScoresOnEnable: 1
+  clearUnmappedSpecies: 1
+  logUpdates: 0
 --- !u!1 &2031021456
 GameObject:
   m_ObjectHideFlags: 0
