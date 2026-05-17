@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,11 +16,20 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private const string TemperatureControllerName = "Sea Temperature Controller";
     private const string TemperaturePrefabPath = "Assets/UI/Thermometer Canvas.prefab";
     private const string AnchorPrefabPath = "Assets/UI - Anchor/Anchor Canvas.prefab";
+    private const float ScoreRefreshIntervalSeconds = 0.35f;
 
     private RectTransform temperaturePanel;
     private RectTransform anchorPanel;
     private Image depthShade;
     private SeaTemperatureController createdTemperatureController;
+    private RectTransform scoreDisplayRoot;
+    private TMP_Text averageScoreLabel;
+    private RectTransform scoreDropdown;
+    private readonly List<TMP_Text> fishScoreLabels = new();
+    private SpeciesSuitabilityDatabase scoreSpeciesDatabase;
+    private ReefSceneAttributeMappingConfig scoreMappingConfig;
+    private float nextScoreRefreshTime;
+    private int scoreHoverDepth;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedCallback()
@@ -58,6 +68,14 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     {
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
         depthShade = MediTerraniaRuntimeUi.EnsureDepthShade(canvas);
+
+        // Create top-center score UI (hoverable dropdown) with live suitability values.
+        CreateScoreDisplay(canvas);
+        scoreSpeciesDatabase = SpeciesSuitabilityLoader.LoadFromStreamingAssets();
+        scoreMappingConfig =
+            ReefSceneAttributeMappingLoader.LoadFromStreamingAssets(ReefSceneSuitabilityEvaluator.DefaultMappingConfigFileName);
+        RefreshScoreDisplay(forceRefresh: true);
+
         RectTransform rightColumn = MediTerraniaRuntimeUi.EnsureRightColumn(canvas);
 
         temperaturePanel = InstallTemperaturePanel(rightColumn, out createdTemperatureController);
@@ -85,6 +103,22 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             Destroy(createdTemperatureController.gameObject);
         }
+
+        if (scoreDisplayRoot != null)
+        {
+            Destroy(scoreDisplayRoot.gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        if (Time.unscaledTime < nextScoreRefreshTime)
+        {
+            return;
+        }
+
+        nextScoreRefreshTime = Time.unscaledTime + ScoreRefreshIntervalSeconds;
+        RefreshScoreDisplay();
     }
 
     private static RectTransform InstallTemperaturePanel(
@@ -155,6 +189,29 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
             new Vector2(320f, 272f));
         MediTerraniaRuntimeUi.CreateTitle(panel, "Anchor Depth");
 
+        // center and raise the panel title slightly
+        TMP_Text panelTitle = FindNamed<TMP_Text>(panel.gameObject, "Title");
+        if (panelTitle != null)
+        {
+            panelTitle.alignment = TextAlignmentOptions.Center;
+            RectTransform titleRect = panelTitle.rectTransform;
+            titleRect.anchorMin = new Vector2(0.5f, 1f);
+            titleRect.anchorMax = new Vector2(0.5f, 1f);
+            titleRect.pivot = new Vector2(0.5f, 1f);
+            titleRect.anchoredPosition = new Vector2(0f, -6f);
+            titleRect.sizeDelta = new Vector2(260f, 24f);
+        }
+
+        // push well further down so the anchor UI sits below the title
+        VerticalLayoutGroup panelLayout = panel.GetComponent<VerticalLayoutGroup>();
+        if (panelLayout != null)
+        {
+            // increase top padding a bit to add vertical gap between title and well
+            RectOffset p = panelLayout.padding;
+            p.top += 10;
+            panelLayout.padding = p;
+        }
+
         GameObject wellObject = new("Anchor Depth Well", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
         wellObject.transform.SetParent(panel, false);
         MediTerraniaRuntimeUi.AddLayoutElement(wellObject, 214f);
@@ -183,7 +240,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         anchor.SetParent(wellRect, false);
         depthText.rectTransform.SetParent(wellRect, false);
 
-        track.anchoredPosition = new Vector2(-54f, -18f);
+        // lower the visual lane and track further so the anchor sits clearly below the title
+        track.anchoredPosition = new Vector2(-54f, -40f);
         track.sizeDelta = new Vector2(16f, 128f);
         Image trackImage = track.GetComponent<Image>();
         if (trackImage != null)
@@ -194,11 +252,14 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         }
 
         Image trackFill = CreateAnchorTrackFill(track);
-        anchor.anchoredPosition = new Vector2(-54f, 46f);
+
+        // move anchor and depth text slightly down relative to previous placement
+        anchor.anchoredPosition = new Vector2(-54f, 10f);
         anchor.sizeDelta = new Vector2(86f, 86f);
+
         depthText.color = Color.white;
         depthText.rectTransform.pivot = new Vector2(0f, 0.5f);
-        depthText.rectTransform.anchoredPosition = new Vector2(26f, 46f);
+        depthText.rectTransform.anchoredPosition = new Vector2(26f, 10f);
         depthText.rectTransform.sizeDelta = new Vector2(110f, 34f);
 
         anchorDrag.track = track;
@@ -223,8 +284,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         laneRect.anchorMin = new Vector2(0.5f, 0.5f);
         laneRect.anchorMax = new Vector2(0.5f, 0.5f);
         laneRect.pivot = new Vector2(0.5f, 0.5f);
-        laneRect.anchoredPosition = new Vector2(-54f, -18f);
-        laneRect.sizeDelta = new Vector2(104f, 184f);
+        laneRect.anchoredPosition = new Vector2(-54f, -40f);
+        laneRect.sizeDelta = new Vector2(104f, 204f);
 
         Image laneImage = laneObject.GetComponent<Image>();
         laneImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
@@ -472,5 +533,208 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             Destroy(temporaryRoot);
         }
+    }
+
+    private void CreateScoreDisplay(Canvas canvas)
+    {
+        if (canvas == null)
+        {
+            return;
+        }
+
+        Transform existing = canvas.transform.Find("Runtime Score Display");
+        if (existing != null)
+        {
+            scoreDisplayRoot = existing.GetComponent<RectTransform>();
+            averageScoreLabel = FindNamed<TMP_Text>(existing.gameObject, "Score Label");
+            scoreDropdown = FindNamed<RectTransform>(existing.gameObject, "Score Dropdown");
+            fishScoreLabels.Clear();
+            if (scoreDropdown != null)
+            {
+                TMP_Text[] entries = scoreDropdown.GetComponentsInChildren<TMP_Text>(true);
+                for (int i = 0; i < entries.Length; i++)
+                {
+                    if (entries[i] != null && entries[i].name.StartsWith("FishScore "))
+                    {
+                        fishScoreLabels.Add(entries[i]);
+                    }
+                }
+            }
+
+            return;
+        }
+
+        GameObject scoreRoot = new("Runtime Score Display", typeof(RectTransform), typeof(Image));
+        scoreRoot.transform.SetParent(canvas.transform, false);
+        scoreRoot.transform.SetAsLastSibling();
+
+        scoreDisplayRoot = scoreRoot.GetComponent<RectTransform>();
+        scoreDisplayRoot.anchorMin = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.anchorMax = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.pivot = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.anchoredPosition = new Vector2(0f, -8f);
+        scoreDisplayRoot.sizeDelta = new Vector2(360f, 44f);
+
+        Image bg = scoreRoot.GetComponent<Image>();
+        bg.sprite = MediTerraniaRuntimeUi.SolidSprite;
+        bg.color = new Color(0f, 0f, 0f, 0f);
+        bg.raycastTarget = true;
+
+        GameObject scoreLabelObj = new("Score Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        scoreLabelObj.transform.SetParent(scoreRoot.transform, false);
+        RectTransform scoreLabelRect = scoreLabelObj.GetComponent<RectTransform>();
+        scoreLabelRect.anchorMin = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.pivot = new Vector2(0.5f, 0.5f);
+        scoreLabelRect.anchoredPosition = Vector2.zero;
+        scoreLabelRect.sizeDelta = new Vector2(320f, 32f);
+
+        averageScoreLabel = scoreLabelObj.GetComponent<TMP_Text>();
+        averageScoreLabel.text = "Average score: --";
+        averageScoreLabel.fontSize = 16f;
+        averageScoreLabel.fontStyle = FontStyles.Bold;
+        averageScoreLabel.alignment = TextAlignmentOptions.Center;
+        averageScoreLabel.color = MediTerraniaRuntimeUi.AccentColor;
+        averageScoreLabel.raycastTarget = true;
+
+        GameObject dropdown = new("Score Dropdown", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
+        dropdown.transform.SetParent(scoreRoot.transform, false);
+        scoreDropdown = dropdown.GetComponent<RectTransform>();
+        scoreDropdown.anchorMin = new Vector2(0.5f, 1f);
+        scoreDropdown.anchorMax = new Vector2(0.5f, 1f);
+        scoreDropdown.pivot = new Vector2(0.5f, 0f);
+        scoreDropdown.anchoredPosition = new Vector2(0f, -40f);
+        scoreDropdown.sizeDelta = new Vector2(320f, 0f);
+
+        Image dropdownImage = dropdown.GetComponent<Image>();
+        dropdownImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
+        dropdownImage.type = Image.Type.Sliced;
+        dropdownImage.color = new Color(0.02f, 0.12f, 0.16f, 0.9f);
+        dropdownImage.raycastTarget = true;
+
+        VerticalLayoutGroup layout = dropdown.GetComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(8, 8, 8, 8);
+        layout.spacing = 4f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlHeight = false;
+        layout.childControlWidth = true;
+
+        scoreDropdown.gameObject.SetActive(false);
+
+        EventTrigger rootTrigger = scoreRoot.GetComponent<EventTrigger>();
+        if (rootTrigger == null)
+        {
+            rootTrigger = scoreRoot.AddComponent<EventTrigger>();
+        }
+
+        rootTrigger.triggers.Clear();
+        AddHoverToggle(rootTrigger, EventTriggerType.PointerEnter, true);
+        AddHoverToggle(rootTrigger, EventTriggerType.PointerExit, false);
+
+        EventTrigger dropdownTrigger = dropdown.GetComponent<EventTrigger>();
+        if (dropdownTrigger == null)
+        {
+            dropdownTrigger = dropdown.AddComponent<EventTrigger>();
+        }
+
+        dropdownTrigger.triggers.Clear();
+        AddHoverToggle(dropdownTrigger, EventTriggerType.PointerEnter, true);
+        AddHoverToggle(dropdownTrigger, EventTriggerType.PointerExit, false);
+    }
+
+    private void RefreshScoreDisplay(bool forceRefresh = false)
+    {
+        if (averageScoreLabel == null || scoreDropdown == null)
+        {
+            return;
+        }
+
+        ReefSceneAttributes sceneAttributes = ReefSceneSuitabilityEvaluator.CaptureCurrentSceneAttributes();
+        List<SuitabilityResult> results = ReefSceneSuitabilityEvaluator.ScoreSceneAttributesForAllSpecies(
+            sceneAttributes,
+            scoreSpeciesDatabase,
+            scoreMappingConfig);
+        if (results == null || results.Count == 0)
+        {
+            averageScoreLabel.text = "Average score: --";
+            EnsureFishScoreRows(0);
+            return;
+        }
+
+        float total = 0f;
+        for (int i = 0; i < results.Count; i++)
+        {
+            total += results[i].finalScore;
+        }
+
+        float average = total / results.Count;
+        averageScoreLabel.text = $"Average score: {average:0.000}";
+
+        EnsureFishScoreRows(results.Count);
+        for (int i = 0; i < results.Count; i++)
+        {
+            TMP_Text row = fishScoreLabels[i];
+            SuitabilityResult result = results[i];
+            string fishName = string.IsNullOrWhiteSpace(result.commonName)
+                ? result.scientificName
+                : result.commonName;
+            row.text = $"{fishName}: {result.finalScore:0.000}";
+            row.color = MediTerraniaRuntimeUi.TextColor;
+        }
+
+        if (forceRefresh)
+        {
+            SetScoreDropdownVisible(scoreHoverDepth > 0);
+        }
+    }
+
+    private void EnsureFishScoreRows(int count)
+    {
+        while (fishScoreLabels.Count < count)
+        {
+            int nextIndex = fishScoreLabels.Count + 1;
+            GameObject entry = new($"FishScore {nextIndex}", typeof(RectTransform), typeof(TextMeshProUGUI));
+            entry.transform.SetParent(scoreDropdown, false);
+            TMP_Text entryText = entry.GetComponent<TMP_Text>();
+            entryText.fontSize = 14f;
+            entryText.alignment = TextAlignmentOptions.Left;
+            entryText.textWrappingMode = TextWrappingModes.NoWrap;
+            entryText.overflowMode = TextOverflowModes.Ellipsis;
+            entryText.color = MediTerraniaRuntimeUi.TextColor;
+            RectTransform entryRect = entry.GetComponent<RectTransform>();
+            entryRect.sizeDelta = new Vector2(288f, 20f);
+            fishScoreLabels.Add(entryText);
+        }
+
+        for (int i = 0; i < fishScoreLabels.Count; i++)
+        {
+            fishScoreLabels[i].gameObject.SetActive(i < count);
+        }
+    }
+
+    private void AddHoverToggle(EventTrigger trigger, EventTriggerType eventType, bool entering)
+    {
+        EventTrigger.Entry entry = new()
+        {
+            eventID = eventType
+        };
+
+        entry.callback.AddListener(_ =>
+        {
+            scoreHoverDepth += entering ? 1 : -1;
+            scoreHoverDepth = Mathf.Max(scoreHoverDepth, 0);
+            SetScoreDropdownVisible(scoreHoverDepth > 0);
+        });
+        trigger.triggers.Add(entry);
+    }
+
+    private void SetScoreDropdownVisible(bool visible)
+    {
+        if (scoreDropdown == null)
+        {
+            return;
+        }
+
+        scoreDropdown.gameObject.SetActive(visible && fishScoreLabels.Count > 0);
     }
 }

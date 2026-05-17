@@ -64,6 +64,32 @@ public sealed class HabitatRopeController : MonoBehaviour
     private TMP_Text ropeCountText;
     private int selectedHabitatMaterialIndex;
 
+    // Compatibility getters used by habitat suitability scoring.
+    public string SelectedTerrainBaseId => $"terrain_{Mathf.Clamp(selectedHabitatIndex + 1, 1, 3)}";
+
+    public string SelectedMaterialId
+    {
+        get
+        {
+            if (habitatMaterialOptions.Count == 0 ||
+                selectedHabitatMaterialIndex < 0 ||
+                selectedHabitatMaterialIndex >= habitatMaterialOptions.Count)
+            {
+                return "stone";
+            }
+
+            string displayName = habitatMaterialOptions[selectedHabitatMaterialIndex].DisplayName;
+            return displayName switch
+            {
+                "Sandstone" => "sand",
+                "Metal" => "iron",
+                _ => "stone"
+            };
+        }
+    }
+
+    public int VisibleRopeCount => visibleRopeCount;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedCallback()
     {
@@ -567,7 +593,7 @@ public sealed class HabitatRopeController : MonoBehaviour
         runtimePanel = MediTerraniaRuntimeUi.CreatePanel(
             MediTerraniaRuntimeUi.EnsureLeftColumn(canvas),
             "Habitat Controls",
-            new Vector2(286f, 248f));
+            new Vector2(286f, 450f)); // Increased height so material box fits inside
 
         VerticalLayoutGroup layout = runtimePanel.GetComponent<VerticalLayoutGroup>();
         if (layout != null)

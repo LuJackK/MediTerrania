@@ -1002,10 +1002,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e9b5373e7cf4b54a928caf73c9474db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 7
+  moveSpeed: 10
   sprintMultiplier: 1.7
-  verticalSpeed: 5
-  mouseSensitivity: 0.09
+  verticalSpeed: 6
+  mouseSensitivity: 0.5
   gamepadLookSensitivity: 110
   lockCursorOnStart: 1
   unlockCursorWithEscape: 1

@@ -1,0 +1,119 @@
+{
+  "depth": {
+    "normalizeMinMeters": 0,
+    "normalizeMaxMeters": 60,
+    "idealMinMeters": 8,
+    "idealMaxMeters": 24,
+    "allowedMinMeters": 2,
+    "allowedMaxMeters": 42
+  },
+  "temperature": {
+    "normalizeMinCelsius": 12,
+    "normalizeMaxCelsius": 28,
+    "idealMinCelsius": 18,
+    "idealMaxCelsius": 24,
+    "allowedMinCelsius": 12,
+    "allowedMaxCelsius": 29
+  },
+  "defaults": {
+    "salinityPsu": 38,
+    "chlorophyllMgM3": 0.2,
+    "distanceToCoastKm": 0.5,
+    "seagrassPresence": 0.2
+  },
+  "ropeSedimentationReductionPerRope": 0.08,
+  "materials": [
+    {
+      "id": "iron",
+      "ironContent": 1.0,
+      "sandContent": 0.0,
+      "rockContent": 0.2,
+      "rockySubstrate": 0.2,
+      "sandySubstrate": 0.0,
+      "useExplicitSubstrateSuitability": false,
+      "substrateSuitability": 0.0,
+      "sedimentCloggingRisk": 0.05
+    },
+    {
+      "id": "sand",
+      "ironContent": 0.0,
+      "sandContent": 1.0,
+      "rockContent": 0.0,
+      "rockySubstrate": 0.0,
+      "sandySubstrate": 1.0,
+      "useExplicitSubstrateSuitability": false,
+      "substrateSuitability": 0.0,
+      "sedimentCloggingRisk": 0.55
+    },
+    {
+      "id": "stone",
+      "ironContent": 0.0,
+      "sandContent": 0.1,
+      "rockContent": 1.0,
+      "rockySubstrate": 1.0,
+      "sandySubstrate": 0.1,
+      "useExplicitSubstrateSuitability": false,
+      "substrateSuitability": 0.0,
+      "sedimentCloggingRisk": 0.08
+    }
+  ],
+  "terrainBases": [
+    {
+      "id": "terrain_1",
+      "slopeDegrees": 0,
+      "reefAssociation": 0,
+      "terrainComplexity": 0,
+      "smallHoleDensity": 0,
+      "mediumHoleDensity": 0,
+      "largeCaveAvailability": 0,
+      "shadowAvailability": 0,
+      "lightExposure": 0,
+      "mixedLightShadow": 0,
+      "cleanCavities": 1,
+      "sedimentCloggingRisk": 0,
+      "surfaceRoughness": 0,
+      "openSwimVolume": 0,
+      "verticalRelief": 0,
+      "reefEdgeComplexity": 0,
+      "shelterAvailability": 0
+    },
+    {
+      "id": "terrain_2",
+      "slopeDegrees": 0,
+      "reefAssociation": 0,
+      "terrainComplexity": 0,
+      "smallHoleDensity": 0,
+      "mediumHoleDensity": 0,
+      "largeCaveAvailability": 0,
+      "shadowAvailability": 0,
+      "lightExposure": 0,
+      "mixedLightShadow": 0,
+      "cleanCavities": 1,
+      "sedimentCloggingRisk": 0,
+      "surfaceRoughness": 0,
+      "openSwimVolume": 0,
+      "verticalRelief": 0,
+      "reefEdgeComplexity": 0,
+      "shelterAvailability": 0
+    },
+    {
+      "id": "terrain_3",
+      "slopeDegrees": 0,
+      "reefAssociation": 0,
+      "terrainComplexity": 0,
+      "smallHoleDensity": 0,
+      "mediumHoleDensity": 0,
+      "largeCaveAvailability": 0,
+      "shadowAvailability": 0,
+      "lightExposure": 0,
+      "mixedLightShadow": 0,
+      "cleanCavities": 1,
+      "sedimentCloggingRisk": 0,
+      "surfaceRoughness": 0,
+      "openSwimVolume": 0,
+      "verticalRelief": 0,
+      "reefEdgeComplexity": 0,
+      "shelterAvailability": 0
+    }
+  ]
+}
