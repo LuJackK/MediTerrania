@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,9 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private const string TemperaturePrefabPath = "Assets/UI/Thermometer Canvas.prefab";
     private const string AnchorPrefabPath = "Assets/UI - Anchor/Anchor Canvas.prefab";
     private const float ScoreRefreshIntervalSeconds = 0.35f;
+    private static readonly List<SuitabilityResult> EmptySuitabilityResults = new();
+
+    public static event Action<IReadOnlyList<SuitabilityResult>> ScoresUpdated;
 
     private RectTransform temperaturePanel;
     private RectTransform anchorPanel;
@@ -658,6 +662,7 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             averageScoreLabel.text = "Average score: --";
             EnsureFishScoreRows(0);
+            ScoresUpdated?.Invoke(EmptySuitabilityResults);
             return;
         }
 
@@ -686,6 +691,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         {
             SetScoreDropdownVisible(scoreHoverDepth > 0);
         }
+
+        ScoresUpdated?.Invoke(results);
     }
 
     private void EnsureFishScoreRows(int count)

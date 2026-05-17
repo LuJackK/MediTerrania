@@ -23,6 +23,9 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     public float cameraDropAtHiddenSurface = 2f;
     public float surfaceRiseAtMaxDepth = 28f;
     public float surfaceRiseAcceleration = 1.7f;
+    public float depthEffectRange = 1.62f;
+    public float darknessRange = 1.44f;
+    public float surfaceRiseRange = 1.62f;
     public Color shallowDarknessColor = new(0f, 0.05f, 0.09f, 0.03f);
     public Color deepDarknessColor = new(0f, 0.025f, 0.07f, 0.34f);
 
@@ -55,6 +58,9 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         cameraDropAtHiddenSurface = Mathf.Max(0f, cameraDropAtHiddenSurface);
         surfaceRiseAtMaxDepth = Mathf.Max(0f, surfaceRiseAtMaxDepth);
         surfaceRiseAcceleration = Mathf.Max(0.01f, surfaceRiseAcceleration);
+        depthEffectRange = Mathf.Max(0.01f, depthEffectRange);
+        darknessRange = Mathf.Max(0f, darknessRange);
+        surfaceRiseRange = Mathf.Max(0f, surfaceRiseRange);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
@@ -204,12 +210,20 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
 
     private void ApplyDepthEnvironment(float normalizedDepth)
     {
+        float rangedDepth = Mathf.Clamp01(normalizedDepth * depthEffectRange);
+
         if (darknessOverlay != null)
         {
-            darknessOverlay.color = Color.Lerp(shallowDarknessColor, deepDarknessColor, normalizedDepth);
+            float darknessT = rangedDepth * darknessRange;
+            Color darknessColor = Color.LerpUnclamped(shallowDarknessColor, deepDarknessColor, darknessT);
+            darknessColor.r = Mathf.Clamp01(darknessColor.r);
+            darknessColor.g = Mathf.Clamp01(darknessColor.g);
+            darknessColor.b = Mathf.Clamp01(darknessColor.b);
+            darknessColor.a = Mathf.Clamp01(darknessColor.a);
+            darknessOverlay.color = darknessColor;
         }
 
-        ApplySurfaceDepthShift(normalizedDepth);
+        ApplySurfaceDepthShift(rangedDepth);
 
         controlledCamera ??= Camera.main;
         if (controlledCamera == null)
@@ -222,11 +236,11 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         controlledCamera.transform.position = shallowCameraPosition + Vector3.down * (cameraDropAtHiddenSurface * cameraDepthT);
     }
 
-    private void ApplySurfaceDepthShift(float normalizedDepth)
+    private void ApplySurfaceDepthShift(float rangedDepth)
     {
         CacheSurfaceShiftTargets();
-        float acceleratedDepth = 1f - Mathf.Pow(1f - Mathf.Clamp01(normalizedDepth), surfaceRiseAcceleration);
-        Vector3 shift = Vector3.up * (surfaceRiseAtMaxDepth * acceleratedDepth);
+        float acceleratedDepth = 1f - Mathf.Pow(1f - Mathf.Clamp01(rangedDepth), surfaceRiseAcceleration);
+        Vector3 shift = Vector3.up * (surfaceRiseAtMaxDepth * surfaceRiseRange * acceleratedDepth);
 
         for (int i = surfaceShiftTargets.Count - 1; i >= 0; i--)
         {

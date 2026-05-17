@@ -15,7 +15,7 @@
         { "feature": "slopeSuitability", "weight": 0.011 },
         { "feature": "terrainComplexity", "weight": 0.015 },
         { "feature": "coastProximity", "weight": 0.308 },
-        { "feature": "rockySubstrate", "weight": 0.08 }
+        { "feature": "rockySubstrate", "weight": 0.05 }
       ],
       "researchedMicrohabitatCoefficients": [
         { "feature": "smallHoleDensity", "weight": 0.35 },
@@ -25,7 +25,7 @@
       ],
       "criticalFactors": [
         "depthSuitability",
-        "rockySubstrate",
+        "substrateSuitability",
         "cleanCavities"
       ]
     },
@@ -44,7 +44,7 @@
         { "feature": "slopeSuitability", "weight": 0.009 },
         { "feature": "terrainComplexity", "weight": -0.004 },
         { "feature": "coastProximity", "weight": 0.358 },
-        { "feature": "rockySubstrate", "weight": 0.08 }
+        { "feature": "rockySubstrate", "weight": 0.05 }
       ],
       "researchedMicrohabitatCoefficients": [
         { "feature": "smallHoleDensity", "weight": 0.28 },
@@ -55,7 +55,7 @@
       ],
       "criticalFactors": [
         "depthSuitability",
-        "rockySubstrate",
+        "substrateSuitability",
         "cleanCavities"
       ]
     },
