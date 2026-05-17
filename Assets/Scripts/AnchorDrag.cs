@@ -36,6 +36,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
     private float lockedAnchorX;
     private float lockedTextX;
     private Vector3 shallowCameraPosition;
+    private Vector3 cameraDepthOffset;
     private bool hasShallowCameraPosition;
     private float lastNormalizedDepth;
 
@@ -101,6 +102,7 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         }
 
         shallowCameraPosition = controlledCamera.transform.position;
+        cameraDepthOffset = Vector3.zero;
         hasShallowCameraPosition = true;
     }
 
@@ -232,8 +234,10 @@ public class AnchorDrag : MonoBehaviour, IBeginDragHandler, IDragHandler
         }
 
         CacheCameraPosition();
+        shallowCameraPosition = controlledCamera.transform.position - cameraDepthOffset;
         float cameraDepthT = Mathf.InverseLerp(minDepthMeters, surfaceHiddenDepthMeters, CurrentDepthMeters);
-        controlledCamera.transform.position = shallowCameraPosition + Vector3.down * (cameraDropAtHiddenSurface * cameraDepthT);
+        cameraDepthOffset = Vector3.down * (cameraDropAtHiddenSurface * cameraDepthT);
+        controlledCamera.transform.position = shallowCameraPosition + cameraDepthOffset;
     }
 
     private void ApplySurfaceDepthShift(float rangedDepth)
