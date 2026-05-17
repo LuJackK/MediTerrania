@@ -20,7 +20,7 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private const float ScoreRefreshIntervalSeconds = 0.35f;
     private static readonly List<SuitabilityResult> EmptySuitabilityResults = new();
 
-    [SerializeField] private bool disableUiOnStart = true;
+    [SerializeField] private bool disableUiOnStart = false;
 
     public static event Action<IReadOnlyList<SuitabilityResult>> ScoresUpdated;
 

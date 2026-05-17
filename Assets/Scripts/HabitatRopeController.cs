@@ -22,7 +22,7 @@ public sealed class HabitatRopeController : MonoBehaviour
     [SerializeField] private List<Material> habitatSurfaceMaterials = new();
     [SerializeField] private List<GameObject> habitatPrefabs = new();
     [SerializeField] private bool createRuntimeUi = true;
-    [SerializeField] private bool disableUiOnStart = true;
+    [SerializeField] private bool disableUiOnStart = false;
     [SerializeField] private float habitatBottomClearance = 0.08f;
 
     private const string ControllerObjectName = "Habitat Rope Controller";
