@@ -56,7 +56,7 @@ Suitability classes are:
 When rope count is provided, the scorer applies a sediment mitigation rule before scoring:
 
 ```text
-sedimentation_reduction = clamp(ropeCount * 0.08, 0, 0.75)
+sedimentation_reduction = clamp(ropeCount * 0.12, 0, 0.75)
 ```
 
 This reduces `sedimentCloggingRisk` and `sandySubstrate`, while improving `cleanCavities` and `substrateSuitability`. This is an engineering/curated rule, not a fitted species-specific result from the training data.

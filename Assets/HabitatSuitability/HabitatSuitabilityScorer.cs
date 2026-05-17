@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class HabitatSuitabilityScorer
 {
-    public const float DefaultSedimentationReductionPerRope = 0.08f;
+    public const float DefaultSedimentationReductionPerRope = 0.12f;
     public const float MaxRopeSedimentationReduction = 0.75f;
 
     public static float ComputeSuitabilityScore(SpeciesSuitabilityConfig species, ReefMetrics reefMetrics)

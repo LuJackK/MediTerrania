@@ -18,7 +18,7 @@ Scoring can also take a rope count:
 rope_sedimentation_reduction = clamp(ropeCount * sedimentationReductionPerRope, 0, 0.75)
 ```
 
-The default reduction rate is `0.08` per rope. Before scoring, rope mitigation lowers `sedimentCloggingRisk` and `sandySubstrate`, and improves the inverse sediment proxies `cleanCavities` and `substrateSuitability`. This keeps existing species configs useful because the current fish are affected by sediment mostly through clean cavities and substrate quality.
+The default reduction rate is `0.12` per rope. Before scoring, rope mitigation lowers `sedimentCloggingRisk` and `sandySubstrate`, and improves the inverse sediment proxies `cleanCavities` and `substrateSuitability`. This keeps existing species configs useful because the current fish are affected by sediment mostly through clean cavities and substrate quality.
 
 All metric values must be normalized to `0..1` before scoring. Use `ReefMetricNormalizer.RangeSuitability` for values such as depth where suitability is highest inside an ideal range and falls off outside it.
 

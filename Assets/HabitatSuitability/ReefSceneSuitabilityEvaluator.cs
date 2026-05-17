@@ -377,6 +377,18 @@ public class ReefSceneAttributeMappingConfig
                 sandySubstrate = 0.1f,
                 sedimentCloggingRisk = 0.08f
             });
+            materials.Add(new ReefMaterialMapping
+            {
+                id = "marble",
+                ironContent = 0f,
+                sandContent = 0.05f,
+                rockContent = 0.6f,
+                rockySubstrate = 0.45f,
+                sandySubstrate = 0.05f,
+                useExplicitSubstrateSuitability = true,
+                substrateSuitability = 0.62f,
+                sedimentCloggingRisk = 0.12f
+            });
         }
 
         if (terrainBases.Count == 0)

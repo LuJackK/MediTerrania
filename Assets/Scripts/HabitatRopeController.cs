@@ -43,6 +43,13 @@ public sealed class HabitatRopeController : MonoBehaviour
         "Assets/Models/habitat3.fbx"
     };
 
+    private static readonly Dictionary<string, string> HabitatDisplayNames = new()
+    {
+        ["habitat1"] = "Sea Oasis",
+        ["habitat2"] = "Neptun",
+        ["habitat3"] = "Cladocora"
+    };
+
     private readonly List<HabitatEntry> habitats = new();
     private readonly List<HabitatMaterialOption> habitatMaterialOptions = new();
     private readonly List<GameObject> currentRopes = new();
@@ -84,6 +91,7 @@ public sealed class HabitatRopeController : MonoBehaviour
             return displayName switch
             {
                 "Sandstone" => "sand",
+                "Marble" => "marble",
                 "Metal" => "iron",
                 _ => "stone"
             };
@@ -408,7 +416,9 @@ public sealed class HabitatRopeController : MonoBehaviour
             }
         }
 
-        string displayName = $"Habitat {habitats.Count + 1}";
+        string displayName = HabitatDisplayNames.TryGetValue(habitatKey, out string configuredDisplayName)
+            ? configuredDisplayName
+            : $"Habitat {habitats.Count + 1}";
         habitats.Add(new HabitatEntry(displayName, habitat));
     }
 
