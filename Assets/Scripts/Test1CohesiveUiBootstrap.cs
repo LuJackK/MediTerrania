@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,11 +16,20 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private const string TemperatureControllerName = "Sea Temperature Controller";
     private const string TemperaturePrefabPath = "Assets/UI/Thermometer Canvas.prefab";
     private const string AnchorPrefabPath = "Assets/UI - Anchor/Anchor Canvas.prefab";
+    private const float ScoreRefreshIntervalSeconds = 0.35f;
 
     private RectTransform temperaturePanel;
     private RectTransform anchorPanel;
     private Image depthShade;
     private SeaTemperatureController createdTemperatureController;
+    private RectTransform scoreDisplayRoot;
+    private TMP_Text averageScoreLabel;
+    private RectTransform scoreDropdown;
+    private readonly List<TMP_Text> fishScoreLabels = new();
+    private SpeciesSuitabilityDatabase scoreSpeciesDatabase;
+    private ReefSceneAttributeMappingConfig scoreMappingConfig;
+    private float nextScoreRefreshTime;
+    private int scoreHoverDepth;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedCallback()
@@ -59,8 +69,12 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         Canvas canvas = MediTerraniaRuntimeUi.EnsureCanvas();
         depthShade = MediTerraniaRuntimeUi.EnsureDepthShade(canvas);
 
-        // create top-center score UI (hoverable dropdown)
+        // Create top-center score UI (hoverable dropdown) with live suitability values.
         CreateScoreDisplay(canvas);
+        scoreSpeciesDatabase = SpeciesSuitabilityLoader.LoadFromStreamingAssets();
+        scoreMappingConfig =
+            ReefSceneAttributeMappingLoader.LoadFromStreamingAssets(ReefSceneSuitabilityEvaluator.DefaultMappingConfigFileName);
+        RefreshScoreDisplay(forceRefresh: true);
 
         RectTransform rightColumn = MediTerraniaRuntimeUi.EnsureRightColumn(canvas);
 
@@ -90,7 +104,21 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
             Destroy(createdTemperatureController.gameObject);
         }
 
-        // Score display is parented to canvas; let Unity clean it up with scene teardown.
+        if (scoreDisplayRoot != null)
+        {
+            Destroy(scoreDisplayRoot.gameObject);
+        }
+    }
+
+    private void Update()
+    {
+        if (Time.unscaledTime < nextScoreRefreshTime)
+        {
+            return;
+        }
+
+        nextScoreRefreshTime = Time.unscaledTime + ScoreRefreshIntervalSeconds;
+        RefreshScoreDisplay();
     }
 
     private static RectTransform InstallTemperaturePanel(
@@ -507,9 +535,7 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         }
     }
 
-    // Creates a top-center "score" label which shows a dropdown of 4 placeholder fish scores on hover.
-    // Actual score population is left intentionally open for later implementation.
-    private static void CreateScoreDisplay(Canvas canvas)
+    private void CreateScoreDisplay(Canvas canvas)
     {
         if (canvas == null)
         {
@@ -519,6 +545,22 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         Transform existing = canvas.transform.Find("Runtime Score Display");
         if (existing != null)
         {
+            scoreDisplayRoot = existing.GetComponent<RectTransform>();
+            averageScoreLabel = FindNamed<TMP_Text>(existing.gameObject, "Score Label");
+            scoreDropdown = FindNamed<RectTransform>(existing.gameObject, "Score Dropdown");
+            fishScoreLabels.Clear();
+            if (scoreDropdown != null)
+            {
+                TMP_Text[] entries = scoreDropdown.GetComponentsInChildren<TMP_Text>(true);
+                for (int i = 0; i < entries.Length; i++)
+                {
+                    if (entries[i] != null && entries[i].name.StartsWith("FishScore "))
+                    {
+                        fishScoreLabels.Add(entries[i]);
+                    }
+                }
+            }
+
             return;
         }
 
@@ -526,19 +568,18 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         scoreRoot.transform.SetParent(canvas.transform, false);
         scoreRoot.transform.SetAsLastSibling();
 
-        RectTransform rootRect = scoreRoot.GetComponent<RectTransform>();
-        rootRect.anchorMin = new Vector2(0.5f, 1f);
-        rootRect.anchorMax = new Vector2(0.5f, 1f);
-        rootRect.pivot = new Vector2(0.5f, 1f);
-        rootRect.anchoredPosition = new Vector2(0f, -8f);
-        rootRect.sizeDelta = new Vector2(300f, 36f);
+        scoreDisplayRoot = scoreRoot.GetComponent<RectTransform>();
+        scoreDisplayRoot.anchorMin = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.anchorMax = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.pivot = new Vector2(0.5f, 1f);
+        scoreDisplayRoot.anchoredPosition = new Vector2(0f, -8f);
+        scoreDisplayRoot.sizeDelta = new Vector2(360f, 44f);
 
         Image bg = scoreRoot.GetComponent<Image>();
         bg.sprite = MediTerraniaRuntimeUi.SolidSprite;
-        bg.color = new Color(0f, 0f, 0f, 0f); // transparent background; style can be changed later
+        bg.color = new Color(0f, 0f, 0f, 0f);
         bg.raycastTarget = true;
 
-        // Score label
         GameObject scoreLabelObj = new("Score Label", typeof(RectTransform), typeof(TextMeshProUGUI));
         scoreLabelObj.transform.SetParent(scoreRoot.transform, false);
         RectTransform scoreLabelRect = scoreLabelObj.GetComponent<RectTransform>();
@@ -546,25 +587,24 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         scoreLabelRect.anchorMax = new Vector2(0.5f, 0.5f);
         scoreLabelRect.pivot = new Vector2(0.5f, 0.5f);
         scoreLabelRect.anchoredPosition = Vector2.zero;
-        scoreLabelRect.sizeDelta = new Vector2(220f, 28f);
+        scoreLabelRect.sizeDelta = new Vector2(320f, 32f);
 
-        TMP_Text scoreLabel = scoreLabelObj.GetComponent<TMP_Text>();
-        scoreLabel.text = "Score: --";
-        scoreLabel.fontSize = 16f;
-        scoreLabel.fontStyle = FontStyles.Bold;
-        scoreLabel.alignment = TextAlignmentOptions.Center;
-        scoreLabel.color = MediTerraniaRuntimeUi.AccentColor;
-        scoreLabel.raycastTarget = true;
+        averageScoreLabel = scoreLabelObj.GetComponent<TMP_Text>();
+        averageScoreLabel.text = "Average score: --";
+        averageScoreLabel.fontSize = 16f;
+        averageScoreLabel.fontStyle = FontStyles.Bold;
+        averageScoreLabel.alignment = TextAlignmentOptions.Center;
+        averageScoreLabel.color = MediTerraniaRuntimeUi.AccentColor;
+        averageScoreLabel.raycastTarget = true;
 
-        // Dropdown panel (hidden by default)
         GameObject dropdown = new("Score Dropdown", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
         dropdown.transform.SetParent(scoreRoot.transform, false);
-        RectTransform dropdownRect = dropdown.GetComponent<RectTransform>();
-        dropdownRect.anchorMin = new Vector2(0.5f, 1f);
-        dropdownRect.anchorMax = new Vector2(0.5f, 1f);
-        dropdownRect.pivot = new Vector2(0.5f, 0f);
-        dropdownRect.anchoredPosition = new Vector2(0f, -38f);
-        dropdownRect.sizeDelta = new Vector2(220f, 0f);
+        scoreDropdown = dropdown.GetComponent<RectTransform>();
+        scoreDropdown.anchorMin = new Vector2(0.5f, 1f);
+        scoreDropdown.anchorMax = new Vector2(0.5f, 1f);
+        scoreDropdown.pivot = new Vector2(0.5f, 0f);
+        scoreDropdown.anchoredPosition = new Vector2(0f, -40f);
+        scoreDropdown.sizeDelta = new Vector2(320f, 0f);
 
         Image dropdownImage = dropdown.GetComponent<Image>();
         dropdownImage.sprite = MediTerraniaRuntimeUi.RoundedSprite;
@@ -579,37 +619,122 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
         layout.childControlHeight = false;
         layout.childControlWidth = true;
 
-        // Four placeholder entries for fish scores
-        for (int i = 0; i < 4; i++)
+        scoreDropdown.gameObject.SetActive(false);
+
+        EventTrigger rootTrigger = scoreRoot.GetComponent<EventTrigger>();
+        if (rootTrigger == null)
         {
-            GameObject entry = new($"FishScore {i+1}", typeof(RectTransform), typeof(TextMeshProUGUI));
-            entry.transform.SetParent(dropdown.transform, false);
+            rootTrigger = scoreRoot.AddComponent<EventTrigger>();
+        }
+
+        rootTrigger.triggers.Clear();
+        AddHoverToggle(rootTrigger, EventTriggerType.PointerEnter, true);
+        AddHoverToggle(rootTrigger, EventTriggerType.PointerExit, false);
+
+        EventTrigger dropdownTrigger = dropdown.GetComponent<EventTrigger>();
+        if (dropdownTrigger == null)
+        {
+            dropdownTrigger = dropdown.AddComponent<EventTrigger>();
+        }
+
+        dropdownTrigger.triggers.Clear();
+        AddHoverToggle(dropdownTrigger, EventTriggerType.PointerEnter, true);
+        AddHoverToggle(dropdownTrigger, EventTriggerType.PointerExit, false);
+    }
+
+    private void RefreshScoreDisplay(bool forceRefresh = false)
+    {
+        if (averageScoreLabel == null || scoreDropdown == null)
+        {
+            return;
+        }
+
+        ReefSceneAttributes sceneAttributes = ReefSceneSuitabilityEvaluator.CaptureCurrentSceneAttributes();
+        List<SuitabilityResult> results = ReefSceneSuitabilityEvaluator.ScoreSceneAttributesForAllSpecies(
+            sceneAttributes,
+            scoreSpeciesDatabase,
+            scoreMappingConfig);
+        if (results == null || results.Count == 0)
+        {
+            averageScoreLabel.text = "Average score: --";
+            EnsureFishScoreRows(0);
+            return;
+        }
+
+        float total = 0f;
+        for (int i = 0; i < results.Count; i++)
+        {
+            total += results[i].finalScore;
+        }
+
+        float average = total / results.Count;
+        averageScoreLabel.text = $"Average score: {average:0.000}";
+
+        EnsureFishScoreRows(results.Count);
+        for (int i = 0; i < results.Count; i++)
+        {
+            TMP_Text row = fishScoreLabels[i];
+            SuitabilityResult result = results[i];
+            string fishName = string.IsNullOrWhiteSpace(result.commonName)
+                ? result.scientificName
+                : result.commonName;
+            row.text = $"{fishName}: {result.finalScore:0.000}";
+            row.color = MediTerraniaRuntimeUi.TextColor;
+        }
+
+        if (forceRefresh)
+        {
+            SetScoreDropdownVisible(scoreHoverDepth > 0);
+        }
+    }
+
+    private void EnsureFishScoreRows(int count)
+    {
+        while (fishScoreLabels.Count < count)
+        {
+            int nextIndex = fishScoreLabels.Count + 1;
+            GameObject entry = new($"FishScore {nextIndex}", typeof(RectTransform), typeof(TextMeshProUGUI));
+            entry.transform.SetParent(scoreDropdown, false);
             TMP_Text entryText = entry.GetComponent<TMP_Text>();
-            entryText.text = $"Fish {i + 1}: --";
             entryText.fontSize = 14f;
-            entryText.color = MediTerraniaRuntimeUi.TextColor;
             entryText.alignment = TextAlignmentOptions.Left;
-            RectTransform eRect = entry.GetComponent<RectTransform>();
-            eRect.sizeDelta = new Vector2(200f, 20f);
+            entryText.textWrappingMode = TextWrappingModes.NoWrap;
+            entryText.overflowMode = TextOverflowModes.Ellipsis;
+            entryText.color = MediTerraniaRuntimeUi.TextColor;
+            RectTransform entryRect = entry.GetComponent<RectTransform>();
+            entryRect.sizeDelta = new Vector2(288f, 20f);
+            fishScoreLabels.Add(entryText);
         }
 
-        dropdown.SetActive(false);
-
-        // Hover behavior: show dropdown on pointer enter, hide on exit
-        EventTrigger trigger = scoreRoot.GetComponent<EventTrigger>();
-        if (trigger == null)
+        for (int i = 0; i < fishScoreLabels.Count; i++)
         {
-            trigger = scoreRoot.AddComponent<EventTrigger>();
+            fishScoreLabels[i].gameObject.SetActive(i < count);
+        }
+    }
+
+    private void AddHoverToggle(EventTrigger trigger, EventTriggerType eventType, bool entering)
+    {
+        EventTrigger.Entry entry = new()
+        {
+            eventID = eventType
+        };
+
+        entry.callback.AddListener(_ =>
+        {
+            scoreHoverDepth += entering ? 1 : -1;
+            scoreHoverDepth = Mathf.Max(scoreHoverDepth, 0);
+            SetScoreDropdownVisible(scoreHoverDepth > 0);
+        });
+        trigger.triggers.Add(entry);
+    }
+
+    private void SetScoreDropdownVisible(bool visible)
+    {
+        if (scoreDropdown == null)
+        {
+            return;
         }
 
-        trigger.triggers.Clear();
-
-        EventTrigger.Entry enterEntry = new() { eventID = EventTriggerType.PointerEnter };
-        enterEntry.callback.AddListener(evt => dropdown.SetActive(true));
-        trigger.triggers.Add(enterEntry);
-
-        EventTrigger.Entry exitEntry = new() { eventID = EventTriggerType.PointerExit };
-        exitEntry.callback.AddListener(evt => dropdown.SetActive(false));
-        trigger.triggers.Add(exitEntry);
+        scoreDropdown.gameObject.SetActive(visible && fishScoreLabels.Count > 0);
     }
 }
