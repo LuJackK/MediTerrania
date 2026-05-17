@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: surfacemat
+  m_Name: surfacemata
   m_Shader: {fileID: -6465566751694194690, guid: 0e6cd6791923303478f5aa5b9f40ba3d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -52,12 +52,13 @@ Material:
     m_Ints: []
     m_Floats:
     - _Alpha: 0.56
-    - _Density: 0.1
+    - _Density: 0.05
     - _Offset: 0.85
-    - _Power: 1.8
+    - _Power: 1.6
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _Color: {r: 0.12, g: 0.62, b: 0.88, a: 1}
+    - _VoronoiColor: {r: 0.45, g: 0.85, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
