@@ -30,7 +30,14 @@ public class Boid : MonoBehaviour {
     Transform target;
 
     void Awake () {
-        material = transform.GetComponentInChildren<MeshRenderer> ().material;
+        //material = transform.GetComponentInChildren<MeshRenderer> ().material;
+
+        
+        // if (material == null)
+        // {
+        //     Debug.Log("Boid MATERIAL is null" + name);
+        // }
+        
         cachedTransform = transform;
     }
 
@@ -57,6 +64,21 @@ public class Boid : MonoBehaviour {
 
     public void UpdateBoid () {
         Vector3 acceleration = Vector3.zero;
+
+
+        if (settings == null)
+        {
+            Debug.Log("Boid Settings is null"+name);
+        };
+
+        if (cachedTransform == null)
+        {
+            Debug.Log("CACHED  is null"+name);
+            return;
+        }
+
+        
+        
 
         if (target != null) {
             Vector3 offsetToTarget = (target.position - position);
