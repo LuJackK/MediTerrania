@@ -23,7 +23,7 @@ public class MainMenuController : MonoBehaviour
     {
         EnsureStyles();
 
-        GUI.color = new Color(0f, 0f, 0f, 0.45f);
+        GUI.color = new Color(0f, 0f, 0f, 0.26f);
         GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
