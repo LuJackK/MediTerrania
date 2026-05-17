@@ -164,9 +164,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 731692b583ee8452eb39576a7b473a70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Spawner
-  prefab: {fileID: 7575847272393211300, guid: d8cab7cb2a9f045b3860924359f1c21b, type: 3}
+  prefab: {fileID: 3315227629224718504, guid: 02d5da11b6d3341a4a44dd2b42764fd1, type: 3}
   spawnRadius: 10
-  spawnCount: 50
+  spawnCount: 2
   colour: {r: 1, g: 1, b: 1, a: 1}
   showSpawnRegion: 1
 --- !u!114 &180862715
@@ -192,11 +192,11 @@ MonoBehaviour:
     maxBoids: 30
     activeBoids: []
   - speciesName: C
-    prefab: {fileID: 2987290504147848249, guid: 70df8989f1f0c498088451f446a4684e, type: 3}
+    prefab: {fileID: 1317905310622788288, guid: a34526aeadcbd4b40a8cf4ef39393987, type: 3}
     maxBoids: 30
     activeBoids: []
   - speciesName: D
-    prefab: {fileID: 8721641718922361029, guid: 44589510227164c48b13f43b4178aec3, type: 3}
+    prefab: {fileID: 1670627645039339954, guid: 7ad49fdb631ae41d39015e83c516c6a9, type: 3}
     maxBoids: 30
     activeBoids: []
   spawnRadius: 10

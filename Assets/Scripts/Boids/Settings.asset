@@ -19,7 +19,7 @@ MonoBehaviour:
   maxSteerForce: 8
   alignWeight: 2
   cohesionWeight: 1
-  seperateWeight: 2.5
+  seperateWeight: 5
   targetWeight: 2
   obstacleMask:
     serializedVersion: 2
