@@ -20,6 +20,8 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private const float ScoreRefreshIntervalSeconds = 0.35f;
     private static readonly List<SuitabilityResult> EmptySuitabilityResults = new();
 
+    [SerializeField] private bool disableUiOnStart = true;
+
     public static event Action<IReadOnlyList<SuitabilityResult>> ScoresUpdated;
 
     private RectTransform temperaturePanel;
@@ -34,6 +36,7 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
     private ReefSceneAttributeMappingConfig scoreMappingConfig;
     private float nextScoreRefreshTime;
     private int scoreHoverDepth;
+    private bool uiVisible = true;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void RegisterSceneLoadedCallback()
@@ -84,6 +87,11 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
 
         temperaturePanel = InstallTemperaturePanel(rightColumn, out createdTemperatureController);
         anchorPanel = InstallAnchorPanel(rightColumn, depthShade);
+
+        if (disableUiOnStart)
+        {
+            DisableUi();
+        }
     }
 
     private void OnDestroy()
@@ -116,6 +124,11 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
 
     private void Update()
     {
+        if (!uiVisible)
+        {
+            return;
+        }
+
         if (Time.unscaledTime < nextScoreRefreshTime)
         {
             return;
@@ -123,6 +136,64 @@ public sealed class Test1CohesiveUiBootstrap : MonoBehaviour
 
         nextScoreRefreshTime = Time.unscaledTime + ScoreRefreshIntervalSeconds;
         RefreshScoreDisplay();
+    }
+
+    public void DisableUi()
+    {
+        SetUiVisible(false);
+    }
+
+    public void EnableUi()
+    {
+        SetUiVisible(true);
+    }
+
+    public void SetUiVisible(bool visible)
+    {
+        uiVisible = visible;
+
+        SetObjectVisible(temperaturePanel, visible);
+        SetObjectVisible(anchorPanel, visible);
+        SetObjectVisible(depthShade, visible);
+        SetObjectVisible(scoreDisplayRoot, visible);
+        SetHabitatUiVisible(visible);
+
+        if (!visible)
+        {
+            SetObjectVisible(scoreDropdown, false);
+            scoreHoverDepth = 0;
+        }
+    }
+
+    [ContextMenu("Disable Cohesive UI")]
+    private void DisableUiFromContextMenu()
+    {
+        DisableUi();
+    }
+
+    [ContextMenu("Enable Cohesive UI")]
+    private void EnableUiFromContextMenu()
+    {
+        EnableUi();
+    }
+
+    private static void SetObjectVisible(Component component, bool visible)
+    {
+        if (component != null)
+        {
+            component.gameObject.SetActive(visible);
+        }
+    }
+
+    private static void SetHabitatUiVisible(bool visible)
+    {
+        HabitatRopeController[] controllers =
+            FindObjectsByType<HabitatRopeController>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+        for (int i = 0; i < controllers.Length; i++)
+        {
+            controllers[i].SetUiVisible(visible);
+        }
     }
 
     private static RectTransform InstallTemperaturePanel(

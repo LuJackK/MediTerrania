@@ -22,6 +22,7 @@ public sealed class HabitatRopeController : MonoBehaviour
     [SerializeField] private List<Material> habitatSurfaceMaterials = new();
     [SerializeField] private List<GameObject> habitatPrefabs = new();
     [SerializeField] private bool createRuntimeUi = true;
+    [SerializeField] private bool disableUiOnStart = true;
     [SerializeField] private float habitatBottomClearance = 0.08f;
 
     private const string ControllerObjectName = "Habitat Rope Controller";
@@ -143,6 +144,11 @@ public sealed class HabitatRopeController : MonoBehaviour
         SelectHabitat(0);
         CreateRuntimeUi();
         UpdateUiState();
+
+        if (disableUiOnStart)
+        {
+            DisableUi();
+        }
     }
 
     private void OnDestroy()
@@ -176,6 +182,24 @@ public sealed class HabitatRopeController : MonoBehaviour
 
         visibleRopeCount = 0;
         UpdateUiState();
+    }
+
+    public void DisableUi()
+    {
+        SetUiVisible(false);
+    }
+
+    public void EnableUi()
+    {
+        SetUiVisible(true);
+    }
+
+    public void SetUiVisible(bool visible)
+    {
+        if (runtimePanel != null)
+        {
+            runtimePanel.gameObject.SetActive(visible);
+        }
     }
 
     private void SelectHabitat(int habitatIndex)
